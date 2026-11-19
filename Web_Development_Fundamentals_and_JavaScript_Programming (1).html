@@ -1,0 +1,4155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="terracotta">
+  <title>Feasto — Architectural Dining, Allergy-Safe Ordering &amp; Food Rescue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces (Terracotta style) */
+      --background: #f9f3eb;
+      --surface-container-low: #f3e9dc;
+      --surface-container: #ede0d0;
+      --surface-container-high: #e4d4c0;
+      --surface-card-pure: #fcf8f2;
+
+      /* Ink */
+      --on-surface: #261b15;
+      --on-surface-variant: #57483f;
+
+      /* Borders */
+      --outline: #9e8a78;
+      --outline-variant: #dfd0be;
+      --primary-border: #c98a6b;
+      --tertiary-border: #b5d6c9;
+      --button-outline: #c4b29e;
+      --scrim: rgb(38 27 21 / 0.56);
+
+      /* Accents */
+      --primary: #b84a24;
+      --primary-hover: #9f3c1a;
+      --on-primary: #ffffff;
+      --primary-container: #f7ebe0;
+      --on-primary-container: #7d2e12;
+      --secondary: #8f6524;
+      --tertiary: #1d6356;
+      --tertiary-container: #e1efe9;
+      --on-tertiary-container: #13473d;
+      --error: #b82929;
+      --error-container: #fae8e8;
+      --on-error: #ffffff;
+
+      /* Semantic tokens */
+      --positive: #1d6356;
+      --warning: #8f6524;
+      --warning-container: #f8eed9;
+      --focus: #b84a24;
+
+      /* Data series */
+      --data-1: #b84a24;
+      --data-2: #1d6356;
+      --data-3: #b5893e;
+      --data-4: #8c3838;
+      --data-context: #a39384;
+
+      /* Fonts */
+      --font-headline: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-label: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+      /* Type scale (Focused Tool + Editorial Cormorant adjustment) */
+      --display-size: clamp(2.15rem, 1.55rem + 2.2vw, 3.25rem);
+      --headline-size: clamp(1.5rem, 1.2rem + 1vw, 2.05rem);
+      --subhead-size: clamp(1.125rem, 1.02rem + 0.4vw, 1.375rem);
+      --body-size: clamp(0.95rem, 0.92rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Shape */
+      --rounded: 0.375rem;
+      --rounded-lg: 0.75rem;
+      --rounded-arch: 28px 28px 6px 6px;
+      --rounded-full: 9999px;
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Effects */
+      --soft-shadow: 0 4px 18px rgb(38 27 21 / 0.04);
+      --soft-shadow-raised: 0 8px 28px rgb(38 27 21 / 0.08);
+      --warm-hairline: 1px solid var(--outline-variant);
+      --brass-gradient: linear-gradient(90deg, #d8c3b0, #b5893e, #d8c3b0);
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Layout Container */
+    .page-grid {
+      display: grid;
+      gap: var(--space-xl);
+      padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+      max-width: 1220px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Header & Stepper Navigation */
+    .site-header {
+      background-color: var(--surface-container-low);
+      border-bottom: var(--warm-hairline);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .header-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .brand-lockup {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-md);
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+    }
+    .brand-wordmark {
+      font-family: var(--font-headline);
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: var(--on-surface);
+    }
+    .brand-wordmark em {
+      font-style: italic;
+      color: var(--primary);
+    }
+    .brand-tag {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--secondary);
+    }
+    .header-status-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-card-pure);
+      border: var(--warm-hairline);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      min-height: 38px;
+    }
+    .status-pill strong {
+      color: var(--on-surface);
+    }
+    .status-pill-btn {
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+    }
+    .status-pill-btn:hover {
+      background-color: var(--primary-container);
+      box-shadow: var(--soft-shadow);
+    }
+
+    /* Multi-page Stepper Nav */
+    .step-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      padding-top: var(--space-xs);
+    }
+    .step-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      border: 1px solid var(--outline-variant);
+      background-color: var(--background);
+      color: var(--on-surface-variant);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+    }
+    .step-btn:hover {
+      background-color: var(--surface-container);
+      color: var(--on-surface);
+    }
+    .step-btn.is-active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: var(--rounded-full);
+      background-color: var(--surface-container-high);
+      color: var(--on-surface);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .step-btn.is-active .step-num {
+      background-color: var(--on-primary);
+      color: var(--primary);
+    }
+
+    /* Typography & Defining Treatments */
+    .title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--display-size);
+      line-height: 1.06;
+      letter-spacing: -0.01em;
+      color: var(--on-surface);
+      margin: 0 0 var(--space-sm);
+    }
+    .title em {
+      font-style: italic;
+      color: var(--primary);
+    }
+    .section-heading {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--headline-size);
+      line-height: 1.15;
+      color: var(--on-surface);
+      margin: 0 0 var(--space-xs);
+    }
+    .section-heading em {
+      font-style: italic;
+      color: var(--primary);
+    }
+    .subhead {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      line-height: 1.25;
+      margin: 0 0 var(--space-xs);
+      color: var(--on-surface);
+    }
+    .lede {
+      font-size: 1.0625rem;
+      line-height: 1.65;
+      color: var(--on-surface-variant);
+      max-width: 65ch;
+      margin: 0;
+    }
+    .kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin: 0 0 var(--space-xs);
+      display: block;
+    }
+    .ornament-rule {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-block: var(--space-md);
+      color: var(--secondary);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .ornament-rule::before,
+    .ornament-rule::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--brass-gradient);
+    }
+
+    /* Badges */
+    .badge-emerald {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--tertiary-container);
+      color: var(--on-tertiary-container);
+      border: 1px solid var(--tertiary-border);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-terracotta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--primary-container);
+      color: var(--on-primary-container);
+      border: 1px solid var(--primary-border);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-neutral {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--surface-container);
+      color: var(--on-surface-variant);
+      border: var(--warm-hairline);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded-full);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+    }
+
+    /* Riad Arch Metric Cards */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .arch-card {
+      background-color: var(--surface-container-low);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded-arch);
+      padding: var(--space-lg) var(--space-md) var(--space-md);
+      text-align: center;
+      box-shadow: var(--soft-shadow);
+    }
+    .arch-card.is-featured {
+      background-color: var(--primary-container);
+      border-color: var(--primary-border);
+    }
+    .arch-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      margin-bottom: var(--space-xs);
+    }
+    .arch-value {
+      font-family: var(--font-headline);
+      font-size: 2.35rem;
+      font-weight: 600;
+      line-height: 1.05;
+      color: var(--on-surface);
+      font-variant-numeric: lining-nums tabular-nums;
+      margin-bottom: var(--space-xs);
+    }
+    .arch-caption {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--tertiary);
+    }
+
+    /* Surfaces & Panels */
+    .panel {
+      background-color: var(--surface-container-low);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--soft-shadow);
+    }
+    .panel-pure {
+      background-color: var(--surface-card-pure);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--soft-shadow);
+    }
+    .panel-highlight {
+      background-color: var(--primary-container);
+      border: 1px solid var(--primary-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      border-radius: var(--rounded-full);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      text-decoration: none;
+      transition: background-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+      box-shadow: var(--soft-shadow-raised);
+    }
+    .btn-secondary {
+      background-color: var(--surface-card-pure);
+      border-color: var(--button-outline);
+      color: var(--on-surface);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--surface-container);
+    }
+    .btn-emerald {
+      background-color: var(--tertiary);
+      color: var(--on-primary);
+    }
+    .btn-emerald:hover:not(:disabled) {
+      background-color: var(--on-tertiary-container);
+      box-shadow: var(--soft-shadow-raised);
+    }
+    .btn-sm {
+      min-height: 38px;
+      padding: var(--space-xs) var(--space-md);
+      font-size: 0.85rem;
+    }
+
+    /* Form Controls */
+    .form-grid {
+      display: grid;
+      gap: var(--space-md);
+    }
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .field label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--on-surface);
+    }
+    .field-hint {
+      font-size: 0.8rem;
+      color: var(--on-surface-variant);
+    }
+    .input, .select, .textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      background-color: var(--surface-card-pure);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      transition: box-shadow var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+    }
+    .select {
+      padding-right: var(--space-xl);
+    }
+    .textarea {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-container);
+    }
+    .field-error {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--error);
+      min-height: 1.2em;
+    }
+
+    /* Inline Form Feedback Banner */
+    .feedback-banner {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .feedback-banner.is-error {
+      background-color: var(--error-container);
+      color: var(--error);
+      border: 1px solid var(--error);
+    }
+    .feedback-banner.is-success {
+      background-color: var(--tertiary-container);
+      color: var(--on-tertiary-container);
+      border: 1px solid var(--tertiary-border);
+    }
+    .feedback-banner.is-warning {
+      background-color: var(--warning-container);
+      color: var(--warning);
+      border: 1px solid var(--outline);
+    }
+
+    /* Chip & Pill Controls */
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    .chip-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      border: 1px solid var(--outline-variant);
+      background-color: var(--surface-card-pure);
+      color: var(--on-surface);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+    }
+    .chip-toggle:hover {
+      background-color: var(--surface-container);
+    }
+    .chip-toggle.is-selected {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+      font-weight: 600;
+    }
+    .allergy-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      min-height: 36px;
+      padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      background-color: var(--primary-container);
+      border: 1px solid var(--primary-border);
+      color: var(--on-primary-container);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .allergy-remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--rounded-full);
+      border: 0;
+      background-color: transparent;
+      color: var(--on-primary-container);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .allergy-remove:hover {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    /* Two-column Asymmetric Layouts */
+    .split-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+    .split-layout-menu {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 0.95fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    /* Card Grids & Container Queries */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .card-wrapper {
+      container-type: inline-size;
+    }
+    .restaurant-card, .dish-card {
+      background-color: var(--surface-card-pure);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded-lg);
+      overflow: hidden;
+      box-shadow: var(--soft-shadow);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: transform var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+    }
+    .restaurant-card:hover, .dish-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--soft-shadow-raised);
+    }
+    .photo-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background-color: var(--surface-container-high);
+      overflow: hidden;
+    }
+    .photo-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .photo-badge-overlay {
+      position: absolute;
+      top: var(--space-sm);
+      left: var(--space-sm);
+      z-index: 2;
+    }
+    .photo-rating-overlay {
+      position: absolute;
+      bottom: var(--space-sm);
+      right: var(--space-sm);
+      z-index: 2;
+      background-color: var(--surface-card-pure);
+      color: var(--on-surface);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded-full);
+      border: var(--warm-hairline);
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .card-body {
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      flex: 1;
+    }
+    .card-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xs);
+      font-size: 0.85rem;
+      color: var(--on-surface-variant);
+    }
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-top: auto;
+      padding-top: var(--space-sm);
+    }
+
+    @container (max-width: 340px) {
+      .card-actions .btn { width: 100%; }
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      align-items: end;
+      background-color: var(--surface-container-low);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .filter-bar .field {
+      flex: 1 1 200px;
+    }
+
+    /* Mode Switcher (Enquire / Order / Takeaway) */
+    .mode-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-md) var(--space-lg);
+      background-color: var(--surface-container);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded-lg);
+    }
+    .segmented-group {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      background-color: var(--surface-container-low);
+      padding: var(--space-xs);
+      border-radius: var(--rounded-full);
+      border: var(--warm-hairline);
+    }
+    .seg-btn {
+      min-height: 40px;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded-full);
+      border: 0;
+      background-color: transparent;
+      color: var(--on-surface-variant);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+    }
+    .seg-btn.is-active {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    /* Dish Details, Ingredients & Reviews */
+    .ingredient-box {
+      background-color: var(--surface-container-low);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.84rem;
+      color: var(--on-surface-variant);
+    }
+    .ingredient-box strong {
+      color: var(--on-surface);
+      display: block;
+      margin-bottom: 2px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .review-snippet {
+      border-left: 3px solid var(--secondary);
+      padding-left: var(--space-sm);
+      font-size: 0.85rem;
+      color: var(--on-surface-variant);
+    }
+    .review-card {
+      background-color: var(--surface-card-pure);
+      border: var(--warm-hairline);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .dish-card.is-filtered-preview {
+      opacity: 0.72;
+      border-color: var(--error);
+    }
+
+    /* Cart & Order Summary */
+    .order-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-block: var(--space-sm);
+      border-bottom: var(--warm-hairline);
+    }
+    .qty-stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .qty-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--rounded-full);
+      border: 1px solid var(--button-outline);
+      background-color: var(--surface-card-pure);
+      color: var(--on-surface);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .qty-btn:hover {
+      background-color: var(--surface-container);
+    }
+    .summary-totals {
+      display: grid;
+      gap: var(--space-xs);
+      padding-top: var(--space-md);
+    }
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9375rem;
+      color: var(--on-surface-variant);
+    }
+    .summary-line.is-total {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      padding-top: var(--space-sm);
+      border-top: var(--warm-hairline);
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--rounded-lg);
+      border: var(--warm-hairline);
+      background-color: var(--surface-card-pure);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    thead th {
+      background-color: var(--surface-container);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: var(--warm-hairline);
+    }
+    tbody td {
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: var(--warm-hairline);
+      font-size: 0.9rem;
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    /* Modal Dialog */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: var(--scrim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+      z-index: 50;
+    }
+    .modal-backdrop[hidden] { display: none; }
+    .modal-dialog {
+      background-color: var(--background);
+      border: 1px solid var(--primary-border);
+      border-radius: var(--rounded-lg);
+      box-shadow: var(--soft-shadow-raised);
+      max-width: 540px;
+      width: 100%;
+      padding: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .modal-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    /* Toast Notification */
+    .toast-region {
+      position: fixed;
+      bottom: var(--space-lg);
+      right: var(--space-lg);
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      max-width: 380px;
+    }
+    .toast-item {
+      background-color: var(--on-surface);
+      color: var(--background);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      box-shadow: var(--soft-shadow-raised);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 4px solid var(--tertiary);
+    }
+
+    /* View Visibility & Gentle Reveal */
+    .page-view[hidden] { display: none; }
+    .page-view {
+      display: grid;
+      gap: var(--space-xl);
+      animation: fadeDrift var(--dur-long) var(--ease-out);
+    }
+    @keyframes fadeDrift {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Footer */
+    .site-footer {
+      border-top: var(--warm-hairline);
+      background-color: var(--surface-container-low);
+      padding: var(--space-lg);
+      margin-top: var(--space-xl);
+    }
+    .footer-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-md);
+      font-size: 0.85rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 900px) {
+      .split-layout,
+      .split-layout-menu {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-md);
+        gap: var(--space-lg);
+      }
+      .site-header {
+        padding: var(--space-md);
+      }
+      .step-nav {
+        gap: var(--space-xs);
+      }
+      .step-btn {
+        font-size: 0.8rem;
+        padding: var(--space-xs) var(--space-sm);
+      }
+      .toast-region {
+        left: var(--space-md);
+        right: var(--space-md);
+        bottom: var(--space-md);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-top">
+        <button type="button" class="brand-lockup" onclick="navigateTo('home')" aria-label="Feasto Home">
+          <span class="brand-wordmark">Feast<em>o</em></span>
+          <span class="brand-tag">Culinary Discovery &amp; Food Rescue</span>
+        </button>
+
+        <div class="header-status-group">
+          <button type="button" class="status-pill status-pill-btn" onclick="navigateTo('registration')" id="header-user-pill">
+            <i data-lucide="user-check" aria-hidden="true"></i>
+            <span id="header-user-text">Guest Profile · Set Allergies</span>
+          </button>
+          <button type="button" class="status-pill status-pill-btn" onclick="navigateTo('menu')" id="header-cart-pill">
+            <i data-lucide="shopping-bag" aria-hidden="true"></i>
+            <span id="header-cart-text">Order (0)</span>
+          </button>
+        </div>
+      </div>
+
+      <nav class="step-nav" aria-label="Primary multi-page navigation">
+        <button type="button" class="step-btn is-active" data-view="registration" onclick="navigateTo('registration')">
+          <span class="step-num">1</span>
+          <span>Registration</span>
+        </button>
+        <button type="button" class="step-btn" data-view="home" onclick="navigateTo('home')">
+          <span class="step-num">2</span>
+          <span>Home &amp; Restaurants</span>
+        </button>
+        <button type="button" class="step-btn" data-view="detail" onclick="navigateTo('detail')">
+          <span class="step-num">3</span>
+          <span>Restaurant &amp; Enquiry</span>
+        </button>
+        <button type="button" class="step-btn" data-view="menu" onclick="navigateTo('menu')">
+          <span class="step-num">4</span>
+          <span>Order &amp; Menu</span>
+        </button>
+        <button type="button" class="step-btn" data-view="giveaway" onclick="navigateTo('giveaway')">
+          <span class="step-num">5</span>
+          <span>Food Giveaway Hub</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-grid">
+    <!-- PAGE 1: REGISTRATION -->
+    <section class="page-view" id="view-registration" aria-labelledby="reg-heading">
+      <div>
+        <span class="kicker">Step 1 of 5 · Personalize Your Dining Safety</span>
+        <h1 class="title" id="reg-heading">Dine with <em>confidence</em>, share with grace</h1>
+        <p class="lede">
+          Register your profile and food allergies once. Feasto tailors nearby architectural dining venues, removes dishes containing your blacklisted ingredients in real time, and connects kitchens with local care homes.
+        </p>
+        <div class="ornament-rule"><span>◆ Diner Profile &amp; Allergen Guard ◆</span></div>
+      </div>
+
+      <div class="split-layout">
+        <form class="panel-pure form-grid" id="registration-form" onsubmit="handleRegistrationSubmit(event)" novalidate>
+          <div>
+            <h2 class="section-heading">Create Your Feasto Profile</h2>
+            <p class="field-hint">All inputs include clear top labels and forgiving validation feedback.</p>
+          </div>
+
+          <div id="reg-feedback" hidden></div>
+
+          <div class="form-row-2">
+            <div class="field">
+              <label for="reg-name">Full Name</label>
+              <input class="input" type="text" id="reg-name" name="name" placeholder="e.g., Elena Vance" autocomplete="name" required>
+              <span class="field-error" id="err-reg-name"></span>
+            </div>
+            <div class="field">
+              <label for="reg-email">Email Address</label>
+              <input class="input" type="email" id="reg-email" name="email" placeholder="e.g., elena@example.com" autocomplete="email" required>
+              <span class="field-error" id="err-reg-email"></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reg-location">Primary Neighborhood / Location</label>
+            <select class="select" id="reg-location" name="location" required>
+              <option value="Arts District">Arts District — Courtyard &amp; Hearth Quarter</option>
+              <option value="Old Quarter">Old Quarter — Historic Sandstone Row</option>
+              <option value="Waterfront Pier">Waterfront Pier — Harbor Timber Promenade</option>
+              <option value="Botanical Mile">Botanical Mile — Conservatory Gardens</option>
+              <option value="Heritage Square">Heritage Square — Limestone Townhouses</option>
+              <option value="Foundry Row">Foundry Row — Redbrick Roastery District</option>
+            </select>
+            <span class="field-error" id="err-reg-location"></span>
+          </div>
+
+          <div class="field">
+            <label>Initial Food Allergies (Click to toggle)</label>
+            <span class="field-hint">Selected allergens are automatically blacklisted across every restaurant menu.</span>
+            <div class="chip-group" id="reg-allergy-chips" role="group" aria-label="Common food allergies"></div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="field">
+              <label for="reg-custom-allergy">Add Another Allergy or Ingredient</label>
+              <input class="input" type="text" id="reg-custom-allergy" placeholder="e.g., Mustard, Garlic, Cilantro">
+            </div>
+            <div>
+              <button type="button" class="btn btn-secondary" onclick="addAllergyFromRegistration()">
+                <i data-lucide="plus" aria-hidden="true"></i>
+                <span>Add Ingredient</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Active Blacklisted Allergies (<span id="reg-allergy-count">0</span>)</label>
+            <div class="chip-group" id="reg-active-allergies"></div>
+          </div>
+
+          <div class="card-actions">
+            <button type="submit" class="btn btn-primary">
+              <span>Save Profile &amp; Explore Restaurants</span>
+              <i data-lucide="arrow-right" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="fillDemoProfile()">
+              <i data-lucide="sparkles" aria-hidden="true"></i>
+              <span>Load Sample Profile</span>
+            </button>
+          </div>
+        </form>
+
+        <aside class="form-grid">
+          <div class="panel-highlight">
+            <span class="kicker">How Feasto Works</span>
+            <h2 class="subhead">A Step-by-Step Culinary Flow</h2>
+            <p class="field-hint" style="margin-bottom: var(--space-md);">
+              Designed around clear visual hierarchy, predictable navigation, and immediate safety feedback.
+            </p>
+            <div class="form-grid" style="gap: var(--space-sm);">
+              <div class="review-card">
+                <strong>1. Register Allergies Once</strong>
+                <span class="field-hint">Your dietary guard persists across every venue you visit.</span>
+              </div>
+              <div class="review-card">
+                <strong>2. Discover Architectural Dining</strong>
+                <span class="field-hint">Browse curated buildings with Hero Donor badges for community leaders.</span>
+              </div>
+              <div class="review-card">
+                <strong>3. Enquire, Order, or Takeaway</strong>
+                <span class="field-hint">Book tables via instant modal confirmation or filter menus live by ingredient.</span>
+              </div>
+              <div class="review-card">
+                <strong>4. Rescue Excess Meals</strong>
+                <span class="field-hint">Schedule cooked food donations to orphanages &amp; senior care homes.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="arch-card is-featured">
+            <div class="arch-label">Tonight's Rescue Goal</div>
+            <div class="arch-value" id="reg-stat-meals">1,435</div>
+            <div class="arch-caption">Meals shared with 4 local care homes</div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PAGE 2: HOME & RESTAURANTS -->
+    <section class="page-view" id="view-home" aria-labelledby="home-heading" hidden>
+      <div>
+        <span class="kicker">Step 2 of 5 · Curated Architectural Venues</span>
+        <h1 class="title" id="home-heading">Curated <em>spaces</em> &amp; Hero Donor kitchens</h1>
+        <p class="lede" id="home-greeting-lede">
+          Explore neighborhood restaurants celebrated for their architectural craft and surplus food stewardship.
+        </p>
+      </div>
+
+      <div class="arch-grid" aria-label="Platform highlights">
+        <div class="arch-card">
+          <div class="arch-label">Curated Kitchens</div>
+          <div class="arch-value" id="home-kpi-venues">6</div>
+          <div class="arch-caption">Architectural dining rooms</div>
+        </div>
+        <div class="arch-card is-featured">
+          <div class="arch-label">Hero Donors</div>
+          <div class="arch-value" id="home-kpi-heroes">3</div>
+          <div class="arch-caption">Active food-rescue partners</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-label">Safe Dishes Ready</div>
+          <div class="arch-value" id="home-kpi-safe">30</div>
+          <div class="arch-caption" id="home-kpi-safe-sub">Matched to your profile</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-label">Meals Rescued</div>
+          <div class="arch-value" id="home-kpi-meals">1,435</div>
+          <div class="arch-caption">Delivered to care homes</div>
+        </div>
+      </div>
+
+      <div class="filter-bar" role="region" aria-label="Filter restaurants">
+        <div class="field">
+          <label for="home-search">Search Restaurant or Cuisine</label>
+          <input class="input" type="search" id="home-search" placeholder="Search by name, architecture, or cuisine…" oninput="renderHomeGrid()">
+        </div>
+        <div class="field">
+          <label for="home-location-filter">Neighborhood</label>
+          <select class="select" id="home-location-filter" onchange="renderHomeGrid()">
+            <option value="all">All Neighborhoods</option>
+            <option value="Arts District">Arts District</option>
+            <option value="Old Quarter">Old Quarter</option>
+            <option value="Waterfront Pier">Waterfront Pier</option>
+            <option value="Botanical Mile">Botanical Mile</option>
+            <option value="Heritage Square">Heritage Square</option>
+            <option value="Foundry Row">Foundry Row</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Community Status</label>
+          <div class="segmented-group" role="group" aria-label="Filter by Hero Donor badge">
+            <button type="button" class="seg-btn is-active" id="filter-all-btn" onclick="setHeroFilter('all')">All Venues</button>
+            <button type="button" class="seg-btn" id="filter-hero-btn" onclick="setHeroFilter('hero')">Hero Donors</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-grid" id="restaurant-grid"></div>
+    </section>
+
+    <!-- PAGE 3: RESTAURANT DETAIL & ENQUIRY -->
+    <section class="page-view" id="view-detail" aria-labelledby="detail-heading" hidden>
+      <div class="mode-bar">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm);">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="navigateTo('home')">
+            <i data-lucide="arrow-left" aria-hidden="true"></i>
+            <span>All Restaurants</span>
+          </button>
+          <div class="field" style="min-width: 220px;">
+            <label for="detail-restaurant-select" class="sr-only">Switch restaurant</label>
+            <select class="select" id="detail-restaurant-select" onchange="selectRestaurant(this.value, 'detail')"></select>
+          </div>
+        </div>
+
+        <div class="segmented-group" role="group" aria-label="Choose restaurant action">
+          <button type="button" class="seg-btn is-active" onclick="navigateTo('detail')">
+            <i data-lucide="info" aria-hidden="true"></i>
+            <span>Enquire</span>
+          </button>
+          <button type="button" class="seg-btn" onclick="openMenuMode('order')">
+            <i data-lucide="truck" aria-hidden="true"></i>
+            <span>Order</span>
+          </button>
+          <button type="button" class="seg-btn" onclick="openMenuMode('takeaway')">
+            <i data-lucide="shopping-bag" aria-hidden="true"></i>
+            <span>Takeaway</span>
+          </button>
+        </div>
+      </div>
+
+      <article class="panel-pure form-grid" id="detail-hero-card"></article>
+
+      <div>
+        <span class="kicker">Architectural &amp; Spatial Gallery</span>
+        <h2 class="section-heading">Inside the Building</h2>
+        <div class="gallery-grid" id="detail-gallery-grid"></div>
+      </div>
+
+      <div class="split-layout">
+        <div class="form-grid">
+          <div class="panel">
+            <span class="kicker">Location &amp; Heritage</span>
+            <h2 class="section-heading" id="detail-heading">Restaurant Background &amp; Details</h2>
+            <div id="detail-background-content" class="form-grid"></div>
+          </div>
+
+          <div class="panel-pure">
+            <span class="kicker">Diner Perspectives</span>
+            <h2 class="section-heading">Verified Guest Reviews</h2>
+            <div id="detail-reviews-list" class="form-grid"></div>
+          </div>
+        </div>
+
+        <aside class="panel-highlight form-grid">
+          <div>
+            <span class="kicker">Table Enquiry &amp; Instant Hold</span>
+            <h2 class="section-heading">Reserve Your Table</h2>
+            <p class="field-hint">Select your preferred dining room and time. Instant confirmation pops up immediately.</p>
+          </div>
+
+          <form class="form-grid" id="reservation-form" onsubmit="handleReservationSubmit(event)" novalidate>
+            <div class="field">
+              <label for="res-date">Reservation Date</label>
+              <input class="input" type="date" id="res-date" required>
+            </div>
+            <div class="form-row-2">
+              <div class="field">
+                <label for="res-time">Seating Time</label>
+                <select class="select" id="res-time">
+                  <option value="18:00">6:00 PM — Early Golden Hour</option>
+                  <option value="19:30" selected>7:30 PM — Prime Evening</option>
+                  <option value="20:45">8:45 PM — Late Candlelight</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="res-guests">Party Size</label>
+                <select class="select" id="res-guests">
+                  <option value="2">2 Guests</option>
+                  <option value="4" selected>4 Guests</option>
+                  <option value="6">6 Guests</option>
+                  <option value="8">8 Guests (Chef Table)</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="res-seating">Architectural Zone</label>
+              <select class="select" id="res-seating">
+                <option value="Main Dining Hall">Main Dining Hall</option>
+                <option value="Courtyard Terrace">Courtyard Terrace</option>
+                <option value="Open Kitchen Counter">Open Kitchen Counter</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="res-notes">Allergy &amp; Accessibility Notes</label>
+              <textarea class="textarea" id="res-notes" placeholder="Share seating accessibility needs or celebrating a milestone…"></textarea>
+            </div>
+            <div id="res-form-error" class="field-error"></div>
+            <button type="submit" class="btn btn-primary">
+              <i data-lucide="calendar-check" aria-hidden="true"></i>
+              <span>Book Your Reservation</span>
+            </button>
+          </form>
+
+          <div class="card-actions" style="border-top: var(--warm-hairline); padding-top: var(--space-md);">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openMenuMode('order')">Order Delivery</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openMenuMode('takeaway')">Order Takeaway</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PAGE 4: MENU VIEW (ORDER / TAKEAWAY) + ALLERGY FILTER ENGINE -->
+    <section class="page-view" id="view-menu" aria-labelledby="menu-heading" hidden>
+      <div class="mode-bar">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm);">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="navigateTo('detail')">
+            <i data-lucide="arrow-left" aria-hidden="true"></i>
+            <span>Back to Enquiry</span>
+          </button>
+          <div class="field" style="min-width: 230px;">
+            <label for="menu-restaurant-select" class="sr-only">Choose restaurant menu</label>
+            <select class="select" id="menu-restaurant-select" onchange="selectRestaurant(this.value, 'menu')"></select>
+          </div>
+          <span id="menu-hero-badge-slot"></span>
+        </div>
+
+        <div class="segmented-group" role="group" aria-label="Select Order or Takeaway">
+          <button type="button" class="seg-btn is-active" id="mode-order-btn" onclick="setOrderMode('order')">
+            <i data-lucide="truck" aria-hidden="true"></i>
+            <span>Order (Delivery · 30–40 min)</span>
+          </button>
+          <button type="button" class="seg-btn" id="mode-takeaway-btn" onclick="setOrderMode('takeaway')">
+            <i data-lucide="shopping-bag" aria-hidden="true"></i>
+            <span>Takeaway (Pickup · 15–20 min)</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <span class="kicker" id="menu-kicker">Step 4 of 5 · Allergy-Safe Culinary Menu</span>
+        <h1 class="title" id="menu-heading"><em>Seasonal</em> Menu &amp; Live Allergy Filter</h1>
+        <p class="lede" id="menu-subtitle">
+          Every dish includes high-definition photography, exact calories, full ingredient lists, and diner reviews. Dishes containing your blacklisted ingredients are removed immediately.
+        </p>
+      </div>
+
+      <!-- DYNAMIC ALLERGY FILTER ENGINE -->
+      <section class="panel-highlight form-grid" aria-label="Dynamic Allergy Filter Engine">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-md);">
+          <div>
+            <span class="kicker">Dynamic Allergy Filter Engine</span>
+            <h2 class="subhead">Registered &amp; Live Ingredient Blacklist</h2>
+          </div>
+          <div class="badge-emerald" id="allergy-status-summary">
+            <i data-lucide="shield-check" aria-hidden="true"></i>
+            <span>All dishes checked</span>
+          </div>
+        </div>
+
+        <div class="chip-group" id="menu-active-allergies" aria-live="polite"></div>
+
+        <form class="form-row-2" onsubmit="handleMenuAllergyAdd(event)">
+          <div class="field">
+            <label for="menu-allergy-input">Add New Allergy or Blacklisted Ingredient Dynamically</label>
+            <input class="input" type="text" id="menu-allergy-input" placeholder="Type any ingredient (e.g., Peanuts, Dairy, Garlic, Mushroom, Sesame)…">
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+            <button type="submit" class="btn btn-primary">
+              <i data-lucide="filter" aria-hidden="true"></i>
+              <span>Blacklist Ingredient</span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="toggleShowFilteredOut()" id="toggle-filtered-btn">
+              <span>Inspect Filtered Dishes</span>
+            </button>
+          </div>
+        </form>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs);">
+          <span class="field-hint" style="margin-right: var(--space-xs);">Quick add:</span>
+          <button type="button" class="chip-toggle" onclick="quickAddAllergy('Peanuts')">+ Peanuts</button>
+          <button type="button" class="chip-toggle" onclick="quickAddAllergy('Dairy')">+ Dairy</button>
+          <button type="button" class="chip-toggle" onclick="quickAddAllergy('Gluten')">+ Gluten</button>
+          <button type="button" class="chip-toggle" onclick="quickAddAllergy('Shellfish')">+ Shellfish</button>
+          <button type="button" class="chip-toggle" onclick="quickAddAllergy('Sesame')">+ Sesame</button>
+          <button type="button" class="chip-toggle" onclick="quickAddAllergy('Eggs')">+ Eggs</button>
+        </div>
+      </section>
+
+      <div class="split-layout-menu">
+        <div class="form-grid">
+          <div class="card-grid" id="menu-grid"></div>
+          <div id="menu-filtered-section" hidden>
+            <div class="ornament-rule"><span>Filtered Out for Your Safety</span></div>
+            <div class="card-grid" id="menu-filtered-grid"></div>
+          </div>
+        </div>
+
+        <aside class="panel-pure form-grid" aria-label="Order and Takeaway Summary">
+          <div>
+            <span class="kicker" id="cart-mode-label">Delivery Order</span>
+            <h2 class="subhead" id="cart-restaurant-name">Your Tray</h2>
+            <p class="field-hint" id="cart-fulfillment-note"></p>
+          </div>
+
+          <div id="cart-items-list"></div>
+
+          <div class="summary-totals" id="cart-totals"></div>
+
+          <div id="order-confirmation-box" hidden></div>
+
+          <button type="button" class="btn btn-primary" id="place-order-btn" onclick="placeCurrentOrder()">
+            <i data-lucide="check-circle" aria-hidden="true"></i>
+            <span id="place-order-label">Confirm Delivery Order</span>
+          </button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PAGE 5: FOOD GIVEAWAY HUB -->
+    <section class="page-view" id="view-giveaway" aria-labelledby="giveaway-heading" hidden>
+      <div>
+        <span class="kicker">Step 5 of 5 · Community Food Rescue</span>
+        <h1 class="title" id="giveaway-heading">Share the <em>harvest</em>, earn Hero Donor status</h1>
+        <p class="lede">
+          Restaurants and individuals can schedule excess freshly cooked meals for verified orphanages and senior care homes. Participating restaurants receive the Hero Donor badge across Feasto.
+        </p>
+        <div class="ornament-rule"><span>◆ Zero-Waste Kitchen Alliance ◆</span></div>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-card is-featured">
+          <div class="arch-label">Total Meals Donated</div>
+          <div class="arch-value" id="giveaway-total-meals">1,435</div>
+          <div class="arch-caption">Freshly cooked &amp; safety verified</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-label">Hero Donor Kitchens</div>
+          <div class="arch-value" id="giveaway-hero-count">3</div>
+          <div class="arch-caption">Awarded across Feasto</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-label">Care Homes Served</div>
+          <div class="arch-value">4</div>
+          <div class="arch-caption">Orphanages &amp; senior residences</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-label">Scheduled Pickups</div>
+          <div class="arch-value" id="giveaway-dispatch-count">3</div>
+          <div class="arch-caption">Active courier dispatches</div>
+        </div>
+      </div>
+
+      <div>
+        <span class="kicker">Verified Recipient Homes</span>
+        <h2 class="section-heading">Nearby Orphanages &amp; Senior Care Homes</h2>
+        <div class="card-grid" id="care-homes-grid"></div>
+      </div>
+
+      <div class="split-layout">
+        <form class="panel-pure form-grid" id="giveaway-form" onsubmit="handleGiveawaySubmit(event)" novalidate>
+          <div>
+            <span class="kicker">Schedule Excess Food Pickup</span>
+            <h2 class="section-heading">Food Donation Scheduling Form</h2>
+            <p class="field-hint">Restaurant donations immediately award or renew the prominent Hero Donor badge.</p>
+          </div>
+
+          <div id="giveaway-feedback" hidden></div>
+
+          <div class="field">
+            <label>Donor Type</label>
+            <div class="segmented-group" role="group" aria-label="Select donor type">
+              <button type="button" class="seg-btn is-active" id="donor-type-restaurant" onclick="setDonorType('restaurant')">Restaurant Partner</button>
+              <button type="button" class="seg-btn" id="donor-type-individual" onclick="setDonorType('individual')">Individual / Home Host</button>
+            </div>
+          </div>
+
+          <div class="field" id="donor-restaurant-field">
+            <label for="don-restaurant">Participating Restaurant (Earns Hero Donor Badge)</label>
+            <select class="select" id="don-restaurant"></select>
+          </div>
+
+          <div class="field" id="donor-individual-field" hidden>
+            <label for="don-individual-name">Individual Donor Name</label>
+            <input class="input" type="text" id="don-individual-name" placeholder="e.g., Marcus Lin">
+          </div>
+
+          <div class="field">
+            <label for="don-food-desc">Excess Cooked Food Description</label>
+            <input class="input" type="text" id="don-food-desc" placeholder="e.g., 28 trays of herb-roasted chicken, saffron rice &amp; braised greens" required>
+            <span class="field-error" id="err-don-desc"></span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="field">
+              <label for="don-portions">Estimated Meal Portions</label>
+              <input class="input" type="number" id="don-portions" min="4" max="500" value="30" required>
+              <span class="field-error" id="err-don-portions"></span>
+            </div>
+            <div class="field">
+              <label for="don-window">Pickup Time Window</label>
+              <select class="select" id="don-window">
+                <option value="Tonight 9:00 PM – 9:45 PM">Tonight 9:00 PM – 9:45 PM</option>
+                <option value="Tonight 10:00 PM – 10:30 PM">Tonight 10:00 PM – 10:30 PM</option>
+                <option value="Tomorrow 1:30 PM – 2:15 PM">Tomorrow 1:30 PM – 2:15 PM</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="don-recipient">Select Orphanage or Senior Care Home</label>
+            <select class="select" id="don-recipient"></select>
+          </div>
+
+          <div class="field">
+            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
+              <input type="checkbox" id="don-safety-check" checked style="width: 20px; height: 20px;">
+              <span>I confirm this cooked food was prepared within 4 hours and stored in sealed food-grade containers.</span>
+            </label>
+            <span class="field-error" id="err-don-safety"></span>
+          </div>
+
+          <button type="submit" class="btn btn-emerald">
+            <i data-lucide="heart-handshake" aria-hidden="true"></i>
+            <span>Schedule Food Giveaway &amp; Award Badge</span>
+          </button>
+        </form>
+
+        <aside class="form-grid">
+          <div class="panel">
+            <span class="kicker">Community Recognition</span>
+            <h2 class="subhead">Hero Donor Hall of Fame</h2>
+            <p class="field-hint" style="margin-bottom: var(--space-md);">
+              Kitchens highlighted across Feasto for verified cooked-meal donations.
+            </p>
+            <div class="form-grid" id="hero-hall-list" style="gap: var(--space-sm);"></div>
+          </div>
+
+          <div class="panel-pure">
+            <span class="kicker">Live Dispatch Ledger</span>
+            <h2 class="subhead">Scheduled Food Giveaways</h2>
+            <div class="table-wrap" style="margin-top: var(--space-sm);">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Donor</th>
+                    <th>Recipient</th>
+                    <th>Portions</th>
+                    <th>Window</th>
+                  </tr>
+                </thead>
+                <tbody id="giveaway-ledger-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <strong>Feasto</strong> · Built with semantic HTML5 landmarks, responsive CSS Grid &amp; Flexbox layouts, accessible labeled forms, DOM event-driven allergy filtering, and iterative UX principles.
+      </div>
+      <div>
+        Course Grounding: Web &amp; HTML Fundamentals, Responsive CSS Box Model, JavaScript DOM Manipulation, UX Design Principles &amp; Client-Side Validation.
+      </div>
+    </div>
+  </footer>
+
+  <!-- RESERVATION CONFIRMATION MODAL -->
+  <div class="modal-backdrop" id="reservation-modal" role="dialog" aria-modal="true" aria-labelledby="modal-res-title" hidden>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <span class="badge-emerald">
+            <i data-lucide="check-circle-2" aria-hidden="true"></i>
+            <span>Confirmed</span>
+          </span>
+          <h2 class="section-heading" id="modal-res-title" style="margin-top: var(--space-sm);">Your Table is Reserved</h2>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeReservationModal()" aria-label="Close confirmation modal">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div id="modal-res-body" class="panel form-grid" style="gap: var(--space-xs);"></div>
+      <div class="card-actions">
+        <button type="button" class="btn btn-primary" onclick="closeReservationModalAndGoMenu()">
+          <span>Preview Allergy-Safe Menu</span>
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="closeReservationModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+  <api-shim></api-shim>
+  <script>
+    /* ============================================================
+       FEASTO DATA MODEL (Safe template literals for all strings)
+       ============================================================ */
+    const COMMON_ALLERGENS = [
+      `Peanuts`,
+      `Tree Nuts`,
+      `Dairy`,
+      `Gluten`,
+      `Shellfish`,
+      `Soy`,
+      `Sesame`,
+      `Eggs`
+    ];
+
+    const CARE_HOMES = [
+      {
+        id: `care-st-jude`,
+        name: `St. Jude Children's Haven`,
+        type: `Orphanage`,
+        neighborhood: `Arts District · 0.6 mi`,
+        residents: `48 children (ages 4–16)`,
+        need: `Hot evening dinners &amp; soft allergen-friendly trays`
+      },
+      {
+        id: `care-cedarwood`,
+        name: `Cedarwood Senior Residence`,
+        type: `Senior Care Home`,
+        neighborhood: `Old Quarter · 0.9 mi`,
+        residents: `62 senior residents`,
+        need: `Low-sodium warm grains, roasted fish &amp; broths`
+      },
+      {
+        id: `care-sunlit`,
+        name: `Sunlit Meadow Orphanage`,
+        type: `Orphanage`,
+        neighborhood: `Botanical Mile · 1.2 mi`,
+        residents: `36 children (ages 3–14)`,
+        need: `Wholesome pasta, flatbreads &amp; fruit desserts`
+      },
+      {
+        id: `care-elm-terrace`,
+        name: `Elm Terrace Elder Care`,
+        type: `Senior Care Home`,
+        neighborhood: `Heritage Square · 1.4 mi`,
+        residents: `54 senior residents`,
+        need: `Tender stews, steamed vegetables &amp; comforting pastries`
+      }
+    ];
+
+    const RESTAURANTS = [
+      {
+        id: `osteria-terracotta`,
+        name: `Osteria Terracotta`,
+        cuisine: `Italian & Wood-Fired Hearth`,
+        neighborhood: `Arts District`,
+        address: `142 Limewash Arcade, Arts District`,
+        hours: `Tue–Sun · 11:30 AM – 10:30 PM`,
+        capacity: `76 seats across arched brick hall & olive courtyard`,
+        rating: 4.9,
+        reviewCount: 312,
+        priceTier: `$$$`,
+        initialHeroDonor: true,
+        donatedMeals: 420,
+        archStyle: `arch-brick`,
+        archColors: { skyTop: `#d98a5b`, skyBot: `#f6d4a8`, wall: `#cfa382`, wallDark: `#a67454`, trim: `#f3e6d3`, glow: `#ffcf87`, foliage: `#3e5c3a` },
+        background: `Housed in a restored 1924 terracotta tile atelier, Osteria Terracotta pairs hand-troweled lime plaster arches with a live oak-fired masonry hearth. Every evening, unserved trays of fresh pasta and roasted vegetables are packaged at 9:15 PM for St. Jude Children's Haven.`,
+        transit: `2 min walk from Arcade Tram Stop · Step-free courtyard entrance`,
+        reviews: [
+          { author: `Clara M.`, rating: `5.0`, date: `Nov 2, 2026`, text: `The vaulted brick dining room glows at dusk, and the kitchen handled my sister's strict nut allergy with complete transparency.` },
+          { author: `Devon R.`, rating: `4.9`, date: `Oct 26, 2026`, text: `Crispy wood-fired flatbreads and genuinely attentive service. Knowing they donate excess nightly meals makes every visit meaningful.` },
+          { author: `Priya S.`, rating: `4.8`, date: `Oct 19, 2026`, text: `Seated in the olive-tree portico—quiet acoustics, warm sconces, and incredible saffron sea bass.` }
+        ]
+      },
+      {
+        id: `saffron-courtyard`,
+        name: `Saffron Courtyard`,
+        cuisine: `Mediterranean & Levantine`,
+        neighborhood: `Old Quarter`,
+        address: `88 Sandstone Lane, Old Quarter`,
+        hours: `Daily · 12:00 PM – 11:00 PM`,
+        capacity: `64 seats around a central zellige fountain courtyard`,
+        rating: 4.8,
+        reviewCount: 248,
+        priceTier: `$$`,
+        initialHeroDonor: true,
+        donatedMeals: 310,
+        archStyle: `sandstone-riad`,
+        archColors: { skyTop: `#53768a`, skyBot: `#e8c69e`, wall: `#e2cbb0`, wallDark: `#bfa07e`, trim: `#1d6356`, glow: `#ffd89b`, foliage: `#2d5a47` },
+        background: `Designed around a sunlit limestone courtyard shaded by cedar louvers and brass lanterns, Saffron Courtyard celebrates wood-roasted coastal produce, heirloom grains, and cold-pressed olive oils. Partnered with Cedarwood Senior Residence for daily surplus rescue.`,
+        transit: `Old Quarter Pedestrian Plaza · Valet & accessible ground-level terrace`,
+        reviews: [
+          { author: `Tariq A.`, rating: `4.9`, date: `Nov 5, 2026`, text: `The cedar louvers filter late afternoon sun beautifully across the stone tables. Tahini cauliflower is unforgettable.` },
+          { author: `Hannah K.`, rating: `4.8`, date: `Oct 29, 2026`, text: `Seamless takeaway pickup counter and clear ingredient breakdowns on every dish.` },
+          { author: `Julian W.`, rating: `4.7`, date: `Oct 14, 2026`, text: `Warm hospitality, serene emerald tilework, and zero guesswork for gluten-free diners.` }
+        ]
+      },
+      {
+        id: `kuro-ember`,
+        name: `Kuro & Ember`,
+        cuisine: `Modern Asian & Hand-Pulled Noodle Bar`,
+        neighborhood: `Waterfront Pier`,
+        address: `19 Timber Quay, Waterfront Pier`,
+        hours: `Tue–Sun · 12:00 PM – 10:00 PM`,
+        capacity: `52 seats in a charred-cedar and steel glass pavilion`,
+        rating: 4.7,
+        reviewCount: 195,
+        priceTier: `$$`,
+        initialHeroDonor: false,
+        donatedMeals: 85,
+        archStyle: `timber-glass`,
+        archColors: { skyTop: `#2c4459`, skyBot: `#89a8b8`, wall: `#322c29`, wallDark: `#1f1b19`, trim: `#c89a64`, glow: `#ffbe6b`, foliage: `#3d5942` },
+        background: `Clad in traditional yakisugi charred cedar and soaring black-steel glazing overlooking the harbor, Kuro & Ember pairs 18-hour broths with binchotan charcoal grilling. Schedule a donation from Kuro & Ember on the Giveaway Hub to unlock their Hero Donor badge!`,
+        transit: `Harbor Ferry Pier B · Covered bicycle racks & ramp entry`,
+        reviews: [
+          { author: `Kenji T.`, rating: `4.8`, date: `Nov 4, 2026`, text: `Dramatic timber rafters and harbor reflections through the glass facade. The coconut laksa broth is deeply aromatic.` },
+          { author: `Maya L.`, rating: `4.7`, date: `Oct 24, 2026`, text: `Appreciate that the allergen filter caught sesame oil in the dan dan noodles right away.` },
+          { author: `Owen P.`, rating: `4.6`, date: `Oct 11, 2026`, text: `Fast 15-minute takeaway prep and generous portions.` }
+        ]
+      },
+      {
+        id: `glasshouse-kitchen`,
+        name: `The Glasshouse Kitchen`,
+        cuisine: `Seasonal Farm-to-Table`,
+        neighborhood: `Botanical Mile`,
+        address: `310 Conservatory Walk, Botanical Mile`,
+        hours: `Wed–Sun · 11:00 AM – 9:30 PM`,
+        capacity: `84 seats inside a restored Victorian iron-and-glass conservatory`,
+        rating: 4.8,
+        reviewCount: 276,
+        priceTier: `$$$`,
+        initialHeroDonor: true,
+        donatedMeals: 285,
+        archStyle: `glasshouse`,
+        archColors: { skyTop: `#6c92a4`, skyBot: `#f0dfc6`, wall: `#d9d4c7`, wallDark: `#a6a092`, trim: `#2c4237`, glow: `#ffe3a8`, foliage: `#335d3b` },
+        background: `Built inside a 1908 botanical conservatory framed by arched cast-iron trusses and clerestory glass, The Glasshouse Kitchen harvests herbs steps from the dining tables. A founding Hero Donor supporting Sunlit Meadow Orphanage every weekend.`,
+        transit: `Botanical Gardens East Gate · Wide garden walkways`,
+        reviews: [
+          { author: `Nora B.`, rating: `4.9`, date: `Nov 6, 2026`, text: `Dining beneath the glass roof while twilight settles over the garden beds feels magical.` },
+          { author: `Liam C.`, rating: `4.8`, date: `Oct 30, 2026`, text: `Truffle wild mushroom risotto is rich yet balanced, and the allergy-safe menu gives total peace of mind.` },
+          { author: `Sofia G.`, rating: `4.8`, date: `Oct 17, 2026`, text: `Wonderful atmosphere for family celebrations—booked in two clicks.` }
+        ]
+      },
+      {
+        id: `bistro-veranda`,
+        name: `Bistro Veranda`,
+        cuisine: `Contemporary French`,
+        neighborhood: `Heritage Square`,
+        address: `54 Limestone Crescent, Heritage Square`,
+        hours: `Tue–Sun · 5:00 PM – 11:00 PM`,
+        capacity: `46 seats across parlor dining room and covered veranda`,
+        rating: 4.6,
+        reviewCount: 164,
+        priceTier: `$$$`,
+        initialHeroDonor: false,
+        donatedMeals: 60,
+        archStyle: `limestone-bistro`,
+        archColors: { skyTop: `#4e5d73`, skyBot: `#dfb995`, wall: `#e8decb`, wallDark: `#bfb29b`, trim: `#1f4a3c`, glow: `#ffd185`, foliage: `#3a5539` },
+        background: `A refined three-story limestone townhouse featuring tall mullioned parlor windows, deep forest-green canvas awnings, and warm brass café sconces. Known for classic French technique lightened with seasonal market reductions.`,
+        transit: `Heritage Square Station · Street-level veranda seating`,
+        reviews: [
+          { author: `Camille D.`, rating: `4.7`, date: `Nov 1, 2026`, text: `Authentic Parisian townhouse proportions with warm limestone facades. Honey-glazed duck breast was cooked to perfection.` },
+          { author: `Arthur N.`, rating: `4.6`, date: `Oct 22, 2026`, text: `Calm acoustic space ideal for conversation.` },
+          { author: `Elena V.`, rating: `4.5`, date: `Oct 10, 2026`, text: `Rich dark chocolate tart—great ingredient labeling for nut sensitivities.` }
+        ]
+      },
+      {
+        id: `spice-loom`,
+        name: `Spice & Loom`,
+        cuisine: `Coastal South Asian & Artisan Bakery`,
+        neighborhood: `Foundry Row`,
+        address: `204 Copper Mill Road, Foundry Row`,
+        hours: `Daily · 11:30 AM – 10:00 PM`,
+        capacity: `70 seats in a converted red-brick textile warehouse`,
+        rating: 4.9,
+        reviewCount: 229,
+        priceTier: `$$`,
+        initialHeroDonor: false,
+        donatedMeals: 95,
+        archStyle: `redbrick-foundry`,
+        archColors: { skyTop: `#7e5a64`, skyBot: `#f2ba8c`, wall: `#9c4a35`, wallDark: `#6e3020`, trim: `#2b2420`, glow: `#ffcf85`, foliage: `#46613e` },
+        background: `Occupying a sunlit 19th-century red-brick textile mill with towering factory-arched windows and a patinated copper entrance canopy, Spice & Loom pairs coastal spice roasting with laminated sourdough pastries.`,
+        transit: `Foundry Row Light Rail · Dedicated takeaway pickup bay`,
+        reviews: [
+          { author: `Rohan M.`, rating: `5.0`, date: `Nov 7, 2026`, text: `Tall industrial brick arches filled with warm cardamom aroma. Best prawn laksa and pistachio pastry in the city.` },
+          { author: `Grace H.`, rating: `4.9`, date: `Oct 28, 2026`, text: `Very detailed ingredient lists—helpful when dining with multiple allergies.` },
+          { author: `Samira K.`, rating: `4.8`, date: `Oct 15, 2026`, text: `Quick delivery and eco-friendly insulated packaging.` }
+        ]
+      }
+    ];
+
+    const DISHES = [
+      /* Osteria Terracotta */
+      {
+        id: `dish-sea-bass`,
+        restaurantId: `osteria-terracotta`,
+        name: `Saffron & Herb Roasted Sea Bass`,
+        price: 29,
+        calories: 520,
+        rating: 4.9,
+        reviewCount: 84,
+        photoStyle: `seabass`,
+        ingredients: [`Wild Mediterranean sea bass`, `Saffron threads`, `Extra virgin olive oil`, `Charred lemon`, `Blistered cherry tomatoes`, `Capers`, `Fresh fennel fronds`, `Garlic`, `Sea salt`],
+        allergens: [],
+        reviews: [
+          { user: `Elena M.`, rating: `5.0`, comment: `Crisp skin, bright saffron citrus emulsion, completely dairy- and gluten-free.` },
+          { user: `Mateo G.`, rating: `4.8`, comment: `Clean coastal flavors and generous portion.` }
+        ]
+      },
+      {
+        id: `dish-burrata-flatbread`,
+        restaurantId: `osteria-terracotta`,
+        name: `Wood-Fired Burrata & Heirloom Flatbread`,
+        price: 21,
+        calories: 640,
+        rating: 4.8,
+        reviewCount: 112,
+        photoStyle: `flatbread`,
+        ingredients: [`Stone-milled wheat sourdough`, `Fresh burrata cheese`, `Heirloom tomatoes`, `Sweet basil`, `Cold-pressed olive oil`, `Cracked black pepper`, `Garlic`],
+        allergens: [`Gluten`, `Dairy`],
+        reviews: [
+          { user: `Lucas B.`, rating: `4.9`, comment: `Blistered leopard crust straight from the oak hearth.` },
+          { user: `Tessa R.`, rating: `4.7`, comment: `Creamy burrata pairs wonderfully with sweet tomatoes.` }
+        ]
+      },
+      {
+        id: `dish-mushroom-risotto`,
+        restaurantId: `osteria-terracotta`,
+        name: `Truffle Wild Mushroom Risotto`,
+        price: 26,
+        calories: 590,
+        rating: 4.9,
+        reviewCount: 93,
+        photoStyle: `risotto`,
+        ingredients: [`Carnaroli rice`, `Chanterelle & porcini mushrooms`, `Aged Parmigiano-Reggiano`, `Cultured butter`, `Black winter truffle`, `Shallots`, `Fresh thyme`, `Vegetable stock`],
+        allergens: [`Dairy`],
+        reviews: [
+          { user: `Nadia K.`, rating: `5.0`, comment: `Silky texture and fragrant shaved truffle.` },
+          { user: `Victor L.`, rating: `4.8`, comment: `Deep forest umami in every spoonful.` }
+        ]
+      },
+      {
+        id: `dish-cauliflower-bowl`,
+        restaurantId: `osteria-terracotta`,
+        name: `Charred Cauliflower & Tahini Harvest Bowl`,
+        price: 19,
+        calories: 440,
+        rating: 4.7,
+        reviewCount: 68,
+        photoStyle: `harvestbowl`,
+        ingredients: [`Wood-roasted cauliflower`, `Roasted sesame tahini`, `Pomegranate arils`, `Toasted pine nuts`, `Parsley chimichurri`, `Quinoa`, `Lemon juice`, `Cumin`],
+        allergens: [`Sesame`, `Tree Nuts`],
+        reviews: [
+          { user: `Sana P.`, rating: `4.8`, comment: `Caramelized florets with bright pomegranate crunch.` },
+          { user: `Ben H.`, rating: `4.6`, comment: `Naturally dairy-free and very satisfying.` }
+        ]
+      },
+      {
+        id: `dish-choc-tart`,
+        restaurantId: `osteria-terracotta`,
+        name: `Dark Chocolate & Hazelnut Tart`,
+        price: 14,
+        calories: 480,
+        rating: 4.9,
+        reviewCount: 77,
+        photoStyle: `tart`,
+        ingredients: [`70% dark chocolate`, `Roasted Piedmont hazelnuts`, `Wheat pastry flour`, `Heavy cream`, `Free-range egg yolk`, `Espresso powder`, `Sea salt`],
+        allergens: [`Tree Nuts`, `Gluten`, `Dairy`, `Eggs`],
+        reviews: [
+          { user: `Aria C.`, rating: `5.0`, comment: `Mirror-gloss ganache and crisp hazelnut crunch.` },
+          { user: `Paul D.`, rating: `4.8`, comment: `Not overly sweet—rich cocoa depth.` }
+        ]
+      },
+
+      /* Saffron Courtyard */
+      {
+        id: `dish-saffron-seabass-2`,
+        restaurantId: `saffron-courtyard`,
+        name: `Preserved Lemon & Saffron Sea Bass`,
+        price: 28,
+        calories: 505,
+        rating: 4.9,
+        reviewCount: 72,
+        photoStyle: `seabass`,
+        ingredients: [`Line-caught sea bass`, `Preserved Meyer lemon`, `Saffron infusion`, `Heirloom cherry tomatoes`, `Green olives`, `Cilantro`, `Olive oil`],
+        allergens: [],
+        reviews: [
+          { user: `Zaid F.`, rating: `4.9`, comment: `Bright citrus and tender flaky fish.` },
+          { user: `Monica W.`, rating: `4.8`, comment: `Safe for gluten, dairy, and nut allergies.` }
+        ]
+      },
+      {
+        id: `dish-levant-harvest`,
+        restaurantId: `saffron-courtyard`,
+        name: `Roasted Cauliflower & Pomegranate Mezze`,
+        price: 18,
+        calories: 410,
+        rating: 4.8,
+        reviewCount: 64,
+        photoStyle: `harvestbowl`,
+        ingredients: [`Roasted cauliflower`, `Sesame tahini`, `Pomegranate seeds`, `Chickpeas`, `Toasted pine nuts`, `Sumac`, `Mint`, `Olive oil`],
+        allergens: [`Sesame`, `Tree Nuts`],
+        reviews: [
+          { user: `Layla N.`, rating: `4.9`, comment: `Vibrant spices and creamy sesame drizzle.` },
+          { user: `Chris J.`, rating: `4.7`, comment: `Light yet deeply flavorful.` }
+        ]
+      },
+      {
+        id: `dish-courtyard-flatbread`,
+        restaurantId: `saffron-courtyard`,
+        name: `Za'atar Burrata & Tomato Manakish`,
+        price: 20,
+        calories: 610,
+        rating: 4.7,
+        reviewCount: 59,
+        photoStyle: `flatbread`,
+        ingredients: [`Wheat flatbread dough`, `Burrata`, `Wild thyme za'atar`, `Toasted sesame seeds`, `Vine tomatoes`, `Olive oil`],
+        allergens: [`Gluten`, `Dairy`, `Sesame`],
+        reviews: [
+          { user: `Rami S.`, rating: `4.8`, comment: `Warm stone-baked dough with fragrant za'atar.` },
+          { user: `Tess L.`, rating: `4.6`, comment: `Shared as a starter and loved every bite.` }
+        ]
+      },
+      {
+        id: `dish-pistachio-mille`,
+        restaurantId: `saffron-courtyard`,
+        name: `Pistachio & Rosewater Mille-Feuille`,
+        price: 15,
+        calories: 465,
+        rating: 4.9,
+        reviewCount: 91,
+        photoStyle: `millefeuille`,
+        ingredients: [`Caramelized wheat puff pastry`, `Roasted pistachios`, `Diplomat milk cream`, `Egg yolks`, `Damask rosewater`, `Cardamom`],
+        allergens: [`Tree Nuts`, `Gluten`, `Dairy`, `Eggs`],
+        reviews: [
+          { user: `Farah Z.`, rating: `5.0`, comment: `Delicate flaky layers with floral rosewater.` },
+          { user: `Ian K.`, rating: `4.8`, comment: `Worth saving room for.` }
+        ]
+      },
+
+      /* Kuro & Ember */
+      {
+        id: `dish-dandan`,
+        restaurantId: `kuro-ember`,
+        name: `Crispy Peanut & Sesame Dan Dan Noodles`,
+        price: 20,
+        calories: 680,
+        rating: 4.8,
+        reviewCount: 105,
+        photoStyle: `noodles`,
+        ingredients: [`Hand-pulled wheat noodles`, `Roasted peanut paste`, `Toasted sesame oil`, `Fermented soy sauce`, `Shiitake crumble`, `Baby bok choy`, `Sichuan chili oil`, `Scallions`],
+        allergens: [`Peanuts`, `Sesame`, `Gluten`, `Soy`],
+        reviews: [
+          { user: `Mina Y.`, rating: `4.9`, comment: `Bouncy handmade noodles with rich nutty chili heat.` },
+          { user: `Derek S.`, rating: `4.7`, comment: `Bold flavor and crisp bok choy.` }
+        ]
+      },
+      {
+        id: `dish-prawn-laksa`,
+        restaurantId: `kuro-ember`,
+        name: `Charred Tiger Prawn & Coconut Laksa`,
+        price: 24,
+        calories: 570,
+        rating: 4.9,
+        reviewCount: 88,
+        photoStyle: `laksa`,
+        ingredients: [`Tiger prawns`, `Coconut milk`, `Rice vermicelli`, `Soft-boiled egg`, `Lemongrass`, `Galangal`, `Bean sprouts`, `Cilantro`, `Lime`],
+        allergens: [`Shellfish`, `Eggs`],
+        reviews: [
+          { user: `Chloe W.`, rating: `5.0`, comment: `Naturally gluten-free rice noodles in fragrant coconut broth.` },
+          { user: `Sam T.`, rating: `4.8`, comment: `Juicy charred prawns and jammy egg.` }
+        ]
+      },
+      {
+        id: `dish-herb-seabass-kuro`,
+        restaurantId: `kuro-ember`,
+        name: `Binchotan Grilled Sea Bass & Yuzu`,
+        price: 28,
+        calories: 475,
+        rating: 4.8,
+        reviewCount: 54,
+        photoStyle: `seabass`,
+        ingredients: [`Charcoal-grilled sea bass`, `Yuzu citrus`, `Ginger`, `Pickled radish`, `Scallions`, `Sea salt`, `Rice vinegar`],
+        allergens: [],
+        reviews: [
+          { user: `Haruto K.`, rating: `4.9`, comment: `Clean charcoal smoke and bright yuzu finish.` },
+          { user: `Olivia P.`, rating: `4.7`, comment: `Great option without soy, gluten, or nuts.` }
+        ]
+      },
+      {
+        id: `dish-kuro-cauliflower`,
+        restaurantId: `kuro-ember`,
+        name: `Miso & Sesame Glazed Cauliflower Bowl`,
+        price: 18,
+        calories: 430,
+        rating: 4.7,
+        reviewCount: 47,
+        photoStyle: `harvestbowl`,
+        ingredients: [`Roasted cauliflower`, `White soybean miso`, `Toasted sesame seeds`, `Steamed jasmine rice`, `Edamame`, `Pickled ginger`, `Scallions`],
+        allergens: [`Soy`, `Sesame`],
+        reviews: [
+          { user: `Jae H.`, rating: `4.8`, comment: `Caramelized miso glaze with crisp edges.` },
+          { user: `Nora V.`, rating: `4.6`, comment: `Wholesome plant-forward bowl.` }
+        ]
+      },
+
+      /* The Glasshouse Kitchen */
+      {
+        id: `dish-gh-risotto`,
+        restaurantId: `glasshouse-kitchen`,
+        name: `Foraged Chanterelle & Herb Risotto`,
+        price: 27,
+        calories: 560,
+        rating: 4.9,
+        reviewCount: 96,
+        photoStyle: `risotto`,
+        ingredients: [`Arborio rice`, `Chanterelle mushrooms`, `Parmesan cheese`, `Cultured cream butter`, `Garden thyme`, `Shallots`, `White wine reduction`],
+        allergens: [`Dairy`],
+        reviews: [
+          { user: `Beatrice F.`, rating: `5.0`, comment: `Fresh garden thyme elevates the earthy chanterelles.` },
+          { user: `Leo M.`, rating: `4.8`, comment: `Creamy perfection and gluten-free.` }
+        ]
+      },
+      {
+        id: `dish-gh-seabass`,
+        restaurantId: `glasshouse-kitchen`,
+        name: `Conservatory Herb-Crusted Sea Bass`,
+        price: 30,
+        calories: 495,
+        rating: 4.8,
+        reviewCount: 73,
+        photoStyle: `seabass`,
+        ingredients: [`Pan-seared sea bass`, `Fennel`, `Lemon zest`, `Heirloom tomatoes`, `Olive oil`, `Capers`, `Garden dill`],
+        allergens: [],
+        reviews: [
+          { user: `Grace O.`, rating: `4.9`, comment: `Light, bright, and free from all top 8 allergens.` },
+          { user: `Elliot R.`, rating: `4.7`, comment: `Superb seasoning and crisp sear.` }
+        ]
+      },
+      {
+        id: `dish-gh-flatbread`,
+        restaurantId: `glasshouse-kitchen`,
+        name: `Heirloom Tomato & Burrata Garden Tartine`,
+        price: 22,
+        calories: 620,
+        rating: 4.8,
+        reviewCount: 81,
+        photoStyle: `flatbread`,
+        ingredients: [`Heritage wheat crust`, `Fresh burrata`, `Sun-ripened tomatoes`, `Genovese basil`, `Garlic oil`, `Flaky sea salt`],
+        allergens: [`Gluten`, `Dairy`],
+        reviews: [
+          { user: `Hannah B.`, rating: `4.9`, comment: `Tastes like peak summer harvested fresh.` },
+          { user: `Jonah T.`, rating: `4.7`, comment: `Crisp crust and milky burrata.` }
+        ]
+      },
+      {
+        id: `dish-gh-tart`,
+        restaurantId: `glasshouse-kitchen`,
+        name: `Valrhona Ganache & Hazelnut Tart`,
+        price: 15,
+        calories: 490,
+        rating: 4.9,
+        reviewCount: 62,
+        photoStyle: `tart`,
+        ingredients: [`Dark chocolate ganache`, `Toasted hazelnuts`, `Wheat cocoa pastry`, `Heavy cream`, `Egg yolk`, `Vanilla bean`],
+        allergens: [`Tree Nuts`, `Gluten`, `Dairy`, `Eggs`],
+        reviews: [
+          { user: `Sienna W.`, rating: `5.0`, comment: `Velvety texture with toasted hazelnut aroma.` },
+          { user: `Cole P.`, rating: `4.8`, comment: `Ideal dessert for two.` }
+        ]
+      },
+
+      /* Bistro Veranda */
+      {
+        id: `dish-bv-duck`,
+        restaurantId: `bistro-veranda`,
+        name: `Honey-Glazed Duck Breast & Roasted Fig`,
+        price: 34,
+        calories: 630,
+        rating: 4.9,
+        reviewCount: 79,
+        photoStyle: `duck`,
+        ingredients: [`Free-range duck breast`, `Black mission figs`, `Wildflower honey`, `Parsnip purée`, `Heavy cream`, `Butter`, `Rosemary jus`],
+        allergens: [`Dairy`],
+        reviews: [
+          { user: `Camille D.`, rating: `5.0`, comment: `Rosy medium-rare duck with crisp rendered skin.` },
+          { user: `Marcus E.`, rating: `4.8`, comment: `Caramelized figs balance the savory jus.` }
+        ]
+      },
+      {
+        id: `dish-bv-risotto`,
+        restaurantId: `bistro-veranda`,
+        name: `Black Truffle & Porcini Risotto`,
+        price: 27,
+        calories: 585,
+        rating: 4.7,
+        reviewCount: 51,
+        photoStyle: `risotto`,
+        ingredients: [`Carnaroli rice`, `Porcini mushrooms`, `Comté & Parmesan`, `Butter`, `Black truffle`, `Shallots`, `Thyme`],
+        allergens: [`Dairy`],
+        reviews: [
+          { user: `Henri L.`, rating: `4.8`, comment: `Classic French depth and nutty Comté finish.` },
+          { user: `Vera K.`, rating: `4.6`, comment: `Warming and aromatic.` }
+        ]
+      },
+      {
+        id: `dish-bv-seabass`,
+        restaurantId: `bistro-veranda`,
+        name: `Provençal Roasted Sea Bass`,
+        price: 31,
+        calories: 480,
+        rating: 4.8,
+        reviewCount: 44,
+        photoStyle: `seabass`,
+        ingredients: [`Mediterranean sea bass`, `Cherry tomatoes`, `Nicoise olives`, `Capers`, `Lemon`, `Fennel`, `Olive oil`],
+        allergens: [],
+        reviews: [
+          { user: `Claire B.`, rating: `4.9`, comment: `Clean Provençal flavors, zero dairy or gluten.` },
+          { user: `Gavin R.`, rating: `4.7`, comment: `Perfectly flaky center.` }
+        ]
+      },
+      {
+        id: `dish-bv-mille`,
+        restaurantId: `bistro-veranda`,
+        name: `Pistachio & Vanilla Mille-Feuille`,
+        price: 16,
+        calories: 470,
+        rating: 4.8,
+        reviewCount: 66,
+        photoStyle: `millefeuille`,
+        ingredients: [`Caramelized wheat puff pastry`, `Crushed pistachios`, `Vanilla diplomat cream`, `Milk`, `Egg yolks`, `Powdered sugar`],
+        allergens: [`Tree Nuts`, `Gluten`, `Dairy`, `Eggs`],
+        reviews: [
+          { user: `Sophie N.`, rating: `4.9`, comment: `Shatteringly crisp pastry layers.` },
+          { user: `Theo J.`, rating: `4.7`, comment: `Balanced sweetness and roasted nut finish.` }
+        ]
+      },
+
+      /* Spice & Loom */
+      {
+        id: `dish-sl-laksa`,
+        restaurantId: `spice-loom`,
+        name: `Coastal Coconut Prawn & Turmeric Bowl`,
+        price: 23,
+        calories: 550,
+        rating: 4.9,
+        reviewCount: 98,
+        photoStyle: `laksa`,
+        ingredients: [`Gulf prawns`, `Coconut milk`, `Rice noodles`, `Turmeric`, `Curry leaves`, `Soft-boiled egg`, `Lime`, `Cilantro`],
+        allergens: [`Shellfish`, `Eggs`],
+        reviews: [
+          { user: `Ananya R.`, rating: `5.0`, comment: `Silky coconut curry broth with bright curry-leaf oil.` },
+          { user: `Tom W.`, rating: `4.8`, comment: `Gluten-free and deeply comforting.` }
+        ]
+      },
+      {
+        id: `dish-sl-peanut-noodles`,
+        restaurantId: `spice-loom`,
+        name: `Roasted Peanut & Chili Crisp Noodles`,
+        price: 19,
+        calories: 650,
+        rating: 4.8,
+        reviewCount: 74,
+        photoStyle: `noodles`,
+        ingredients: [`Artisan wheat noodles`, `Crushed peanuts`, `Toasted sesame`, `Soy glaze`, `Crispy shallots`, `Bok choy`, `Garlic chili oil`],
+        allergens: [`Peanuts`, `Sesame`, `Gluten`, `Soy`],
+        reviews: [
+          { user: `Dev P.`, rating: `4.9`, comment: `Addictive crunch from roasted peanuts and crispy shallots.` },
+          { user: `Lily C.`, rating: `4.7`, comment: `Bold spice balanced by savory soy.` }
+        ]
+      },
+      {
+        id: `dish-sl-cauliflower`,
+        restaurantId: `spice-loom`,
+        name: `Tandoor-Charred Cauliflower & Herb Bowl`,
+        price: 18,
+        calories: 425,
+        rating: 4.8,
+        reviewCount: 63,
+        photoStyle: `harvestbowl`,
+        ingredients: [`Charred cauliflower`, `Pomegranate`, `Mint-cilantro chutney`, `Basmati rice`, `Cumin`, `Lemon`, `Olive oil`],
+        allergens: [],
+        reviews: [
+          { user: `Meera V.`, rating: `4.9`, comment: `Smoky char without any nuts, sesame, dairy, or gluten.` },
+          { user: `Josh K.`, rating: `4.7`, comment: `Fresh herbs make this bowl shine.` }
+        ]
+      },
+      {
+        id: `dish-sl-mille`,
+        restaurantId: `spice-loom`,
+        name: `Cardamom Pistachio Rose Pastry`,
+        price: 14,
+        calories: 455,
+        rating: 4.9,
+        reviewCount: 85,
+        photoStyle: `millefeuille`,
+        ingredients: [`Laminated wheat pastry`, `Crushed pistachios`, `Cardamom cream`, `Dairy butter`, `Egg`, `Dried rose petals`],
+        allergens: [`Tree Nuts`, `Gluten`, `Dairy`, `Eggs`],
+        reviews: [
+          { user: `Zoya A.`, rating: `5.0`, comment: `Bakery-grade laminated layers with fragrant cardamom.` },
+          { user: `Noah L.`, rating: `4.8`, comment: `Stunning presentation.` }
+        ]
+      }
+    ];
+
+    const INITIAL_DONATIONS = [
+      {
+        id: `don-101`,
+        donorType: `restaurant`,
+        donorId: `osteria-terracotta`,
+        donorName: `Osteria Terracotta`,
+        foodDesc: `Herb-roasted sea bass trays &amp; saffron rice`,
+        portions: 42,
+        recipientName: `St. Jude Children's Haven`,
+        window: `Tonight 9:00 PM – 9:45 PM`,
+        timestamp: `Scheduled`
+      },
+      {
+        id: `don-102`,
+        donorType: `restaurant`,
+        donorId: `saffron-courtyard`,
+        donorName: `Saffron Courtyard`,
+        foodDesc: `Warm chickpea stew &amp; roasted cauliflower platters`,
+        portions: 35,
+        recipientName: `Cedarwood Senior Residence`,
+        window: `Tonight 10:00 PM – 10:30 PM`,
+        timestamp: `Scheduled`
+      },
+      {
+        id: `don-103`,
+        donorType: `restaurant`,
+        donorId: `glasshouse-kitchen`,
+        donorName: `The Glasshouse Kitchen`,
+        foodDesc: `Seasonal root vegetable gratin &amp; herb bread`,
+        portions: 28,
+        recipientName: `Sunlit Meadow Orphanage`,
+        window: `Tomorrow 1:30 PM – 2:15 PM`,
+        timestamp: `Scheduled`
+      }
+    ];
+
+    /* ============================================================
+       APPLICATION STATE (Persisted cleanly via notebookAppApi)
+       ============================================================ */
+    let appState = {
+      currentView: `registration`,
+      registered: false,
+      user: {
+        name: ``,
+        email: ``,
+        location: `Arts District`,
+        allergies: [`Peanuts`]
+      },
+      heroFilter: `all`,
+      selectedRestaurantId: `osteria-terracotta`,
+      orderMode: `order`,
+      showFilteredOut: false,
+      cart: {},
+      reservations: [],
+      donations: INITIAL_DONATIONS.slice(),
+      heroDonorIds: [`osteria-terracotta`, `saffron-courtyard`, `glasshouse-kitchen`]
+    };
+
+    /* ============================================================
+       DETERMINISTIC PHOTOGRAPHIC CANVAS ENGINE
+       (High-definition architectural & culinary photography)
+       ============================================================ */
+    function hashString(str) {
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function createRng(seed) {
+      let a = seed >>> 0;
+      return function() {
+        a |= 0;
+        a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function applyFilmGrainAndVignette(ctx, w, h, rng, strength) {
+      ctx.save();
+      const step = 4;
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          const n = (rng() - 0.5) * strength;
+          if (Math.abs(n) > 0.012) {
+            ctx.fillStyle = n > 0 ? `rgba(255,248,236,${n})` : `rgba(26,18,14,${-n})`;
+            ctx.fillRect(x, y, step, step);
+          }
+        }
+      }
+      const vig = ctx.createRadialGradient(w * 0.5, h * 0.48, w * 0.22, w * 0.5, h * 0.5, w * 0.72);
+      vig.addColorStop(0, `rgba(0,0,0,0)`);
+      vig.addColorStop(1, `rgba(24,16,12,0.34)`);
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+    }
+
+    function drawWindowGlow(ctx, x, y, w, h, frameColor, glowColor, isArched) {
+      ctx.save();
+      ctx.beginPath();
+      if (isArched) {
+        const r = w / 2;
+        ctx.moveTo(x, y + h);
+        ctx.lineTo(x, y + r);
+        ctx.arc(x + r, y + r, r, Math.PI, 0, false);
+        ctx.lineTo(x + w, y + h);
+        ctx.closePath();
+      } else {
+        ctx.rect(x, y, w, h);
+      }
+      ctx.clip();
+
+      // Deep warm interior tungsten gradient
+      const bg = ctx.createLinearGradient(x, y, x, y + h);
+      bg.addColorStop(0, `#2a1d17`);
+      bg.addColorStop(0.55, `#6e4425`);
+      bg.addColorStop(1, `#3a2518`);
+      ctx.fillStyle = bg;
+      ctx.fillRect(x, y, w, h);
+
+      // Pendant warm lamp bokeh inside window
+      const lamp = ctx.createRadialGradient(x + w * 0.5, y + h * 0.42, 2, x + w * 0.5, y + h * 0.45, w * 0.65);
+      lamp.addColorStop(0, `#fff4d4`);
+      lamp.addColorStop(0.28, glowColor);
+      lamp.addColorStop(1, `rgba(110,68,37,0)`);
+      ctx.fillStyle = lamp;
+      ctx.fillRect(x, y, w, h);
+
+      // Diagonal glass sky reflection
+      const refl = ctx.createLinearGradient(x, y, x + w, y + h);
+      refl.addColorStop(0, `rgba(210,228,240,0.22)`);
+      refl.addColorStop(0.45, `rgba(255,255,255,0.03)`);
+      refl.addColorStop(1, `rgba(255,255,255,0)`);
+      ctx.fillStyle = refl;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w * 0.68, y);
+      ctx.lineTo(x + w * 0.25, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Mullions
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.5, y);
+      ctx.lineTo(x + w * 0.5, y + h);
+      ctx.moveTo(x, y + h * 0.48);
+      ctx.lineTo(x + w, y + h * 0.48);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Outer stone/metal reveal shadow
+      ctx.save();
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (isArched) {
+        const r = w / 2;
+        ctx.moveTo(x, y + h);
+        ctx.lineTo(x, y + r);
+        ctx.arc(x + r, y + r, r, Math.PI, 0, false);
+        ctx.lineTo(x + w, y + h);
+        ctx.closePath();
+      } else {
+        ctx.rect(x, y, w, h);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawFoliageCluster(ctx, cx, cy, r, baseColor, rng) {
+      ctx.save();
+      for (let i = 0; i < 34; i++) {
+        const ang = rng() * Math.PI * 2;
+        const dist = Math.sqrt(rng()) * r;
+        const lx = cx + Math.cos(ang) * dist;
+        const ly = cy + Math.sin(ang) * dist * 0.78;
+        const lr = 4 + rng() * 9;
+        const shade = rng();
+        ctx.fillStyle = shade < 0.33 ? `#1e3320` : shade < 0.7 ? baseColor : `#6b8a58`;
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, lr, lr * 0.72, ang, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function renderArchitecturePhoto(canvas, restaurant, variant) {
+      if (!canvas) return;
+      const w = 640;
+      const h = 400;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext(`2d`);
+      if (!ctx) return;
+
+      const rng = createRng(hashString(`${restaurant.id}-${variant}`));
+      const c = restaurant.archColors;
+
+      // Sky gradient
+      const sky = ctx.createLinearGradient(0, 0, 0, h * 0.65);
+      sky.addColorStop(0, c.skyTop);
+      sky.addColorStop(1, c.skyBot);
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      // Soft atmospheric cloud wisps
+      for (let i = 0; i < 6; i++) {
+        const cx = rng() * w;
+        const cy = 20 + rng() * 95;
+        const cg = ctx.createRadialGradient(cx, cy, 4, cx, cy, 90 + rng() * 60);
+        cg.addColorStop(0, `rgba(255,244,230,0.22)`);
+        cg.addColorStop(1, `rgba(255,244,230,0)`);
+        ctx.fillStyle = cg;
+        ctx.fillRect(0, 0, w, h * 0.5);
+      }
+
+      if (variant === `interior`) {
+        // Warm architectural dining hall perspective
+        const wallGrad = ctx.createLinearGradient(0, 0, w, h);
+        wallGrad.addColorStop(0, c.wall);
+        wallGrad.addColorStop(1, c.wallDark);
+        ctx.fillStyle = wallGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Coffered ceiling & beams
+        ctx.fillStyle = `rgba(38,24,18,0.42)`;
+        ctx.fillRect(0, 0, w, 62);
+        for (let bx = 40; bx < w; bx += 110) {
+          ctx.fillStyle = `rgba(28,18,14,0.55)`;
+          ctx.fillRect(bx, 0, 18, 66);
+        }
+
+        // Arched back wall niches with warm sconces
+        for (let i = 0; i < 3; i++) {
+          const ax = 68 + i * 190;
+          drawWindowGlow(ctx, ax, 86, 124, 178, c.trim, c.glow, true);
+        }
+
+        // Perspective oak floorboards
+        const floorGrad = ctx.createLinearGradient(0, 265, 0, h);
+        floorGrad.addColorStop(0, `#4c3425`);
+        floorGrad.addColorStop(1, `#291a12`);
+        ctx.fillStyle = floorGrad;
+        ctx.fillRect(0, 265, w, h - 265);
+
+        // Dining tables with linen & warm candle pools
+        for (let t = 0; t < 3; t++) {
+          const tx = 105 + t * 200;
+          const ty = 315;
+          ctx.fillStyle = `rgba(15,10,8,0.45)`;
+          ctx.beginPath();
+          ctx.ellipse(tx, ty + 32, 62, 16, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = `#f3eadc`;
+          ctx.beginPath();
+          ctx.ellipse(tx, ty, 58, 20, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          const candle = ctx.createRadialGradient(tx, ty - 8, 1, tx, ty - 8, 38);
+          candle.addColorStop(0, `#fff8de`);
+          candle.addColorStop(0.3, `rgba(255,200,115,0.55)`);
+          candle.addColorStop(1, `rgba(255,200,115,0)`);
+          ctx.fillStyle = candle;
+          ctx.fillRect(tx - 40, ty - 48, 80, 60);
+        }
+        applyFilmGrainAndVignette(ctx, w, h, rng, 0.045);
+        return;
+      }
+
+      if (variant === `terrace`) {
+        // Sunlit courtyard terrace with olive trees, pergola & limestone floor
+        const plaster = ctx.createLinearGradient(0, 60, w, h);
+        plaster.addColorStop(0, c.wall);
+        plaster.addColorStop(1, c.wallDark);
+        ctx.fillStyle = plaster;
+        ctx.fillRect(0, 75, w * 0.42, h - 75);
+
+        // Timber pergola slats overhead
+        ctx.fillStyle = `#3d291d`;
+        ctx.fillRect(0, 56, w, 16);
+        for (let sx = 18; sx < w; sx += 44) {
+          ctx.fillStyle = `rgba(48,32,22,0.78)`;
+          ctx.beginPath();
+          ctx.moveTo(sx, 56);
+          ctx.lineTo(sx + 14, 56);
+          ctx.lineTo(sx - 18, 250);
+          ctx.lineTo(sx - 28, 250);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Courtyard stone floor
+        const stone = ctx.createLinearGradient(0, 250, 0, h);
+        stone.addColorStop(0, `#d9c5ab`);
+        stone.addColorStop(1, `#9f886f`);
+        ctx.fillStyle = stone;
+        ctx.fillRect(0, 250, w, h - 250);
+
+        // Diagonal sunlight shaft
+        ctx.fillStyle = `rgba(255,240,210,0.22)`;
+        ctx.beginPath();
+        ctx.moveTo(220, 72);
+        ctx.lineTo(540, 72);
+        ctx.lineTo(640, h);
+        ctx.lineTo(140, h);
+        ctx.closePath();
+        ctx.fill();
+
+        drawWindowGlow(ctx, 48, 120, 110, 140, c.trim, c.glow, true);
+        drawFoliageCluster(ctx, 495, 165, 92, c.foliage, rng);
+        drawFoliageCluster(ctx, 185, 225, 52, c.foliage, rng);
+
+        // Terracotta planter pots
+        ctx.fillStyle = `#b85635`;
+        ctx.fillRect(475, 232, 46, 38);
+        ctx.fillRect(166, 245, 36, 30);
+
+        applyFilmGrainAndVignette(ctx, w, h, rng, 0.045);
+        return;
+      }
+
+      /* EXTERIOR ARCHITECTURAL FACADE */
+      // Building perspective massing
+      const bLeft = 58;
+      const bTop = 44;
+      const bW = 524;
+      const bH = 294;
+
+      // Cast drop shadow on right side of facade
+      ctx.fillStyle = `rgba(24,16,12,0.28)`;
+      ctx.fillRect(bLeft + bW, bTop + 18, 26, bH - 18);
+
+      // Main wall surface
+      const facadeGrad = ctx.createLinearGradient(bLeft, bTop, bLeft + bW, bTop + bH);
+      facadeGrad.addColorStop(0, c.wall);
+      facadeGrad.addColorStop(1, c.wallDark);
+      ctx.fillStyle = facadeGrad;
+      ctx.fillRect(bLeft, bTop, bW, bH);
+
+      // Architectural masonry / timber texture lines
+      ctx.save();
+      ctx.strokeStyle = `rgba(38,24,18,0.12)`;
+      ctx.lineWidth = 1;
+      if (restaurant.archStyle === `timber-glass`) {
+        for (let x = bLeft; x < bLeft + bW; x += 14) {
+          ctx.beginPath();
+          ctx.moveTo(x, bTop);
+          ctx.lineTo(x, bTop + bH);
+          ctx.stroke();
+        }
+      } else {
+        for (let y = bTop + 22; y < bTop + bH; y += 22) {
+          ctx.beginPath();
+          ctx.moveTo(bLeft, y);
+          ctx.lineTo(bLeft + bW, y);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+
+      // Cornice / roofline molding
+      ctx.fillStyle = c.trim;
+      ctx.fillRect(bLeft - 10, bTop - 10, bW + 20, 18);
+      ctx.fillStyle = `rgba(20,14,10,0.25)`;
+      ctx.fillRect(bLeft, bTop + 8, bW, 8);
+
+      // Upper story windows
+      if (restaurant.archStyle === `glasshouse`) {
+        // Arched glasshouse bays
+        for (let i = 0; i < 4; i++) {
+          drawWindowGlow(ctx, bLeft + 34 + i * 120, bTop + 34, 96, 130, c.trim, c.glow, true);
+        }
+      } else {
+        for (let i = 0; i < 4; i++) {
+          const isArched = restaurant.archStyle === `arch-brick` || restaurant.archStyle === `sandstone-riad`;
+          drawWindowGlow(ctx, bLeft + 38 + i * 118, bTop + 36, 86, 98, c.trim, c.glow, isArched);
+        }
+      }
+
+      // Ground floor storefront frieze & awning/portico
+      ctx.fillStyle = `rgba(28,20,16,0.85)`;
+      ctx.fillRect(bLeft + 18, bTop + 158, bW - 36, 28);
+      ctx.fillStyle = `#f7ebe0`;
+      ctx.font = `600 13px "Cormorant Garamond", serif`;
+      ctx.textAlign = `center`;
+      ctx.fillText(restaurant.name.toUpperCase(), w / 2, bTop + 177);
+
+      // Storefront large glowing glass bays & central arched entry
+      drawWindowGlow(ctx, bLeft + 34, bTop + 196, 138, 142, c.trim, c.glow, false);
+      drawWindowGlow(ctx, bLeft + 198, bTop + 190, 128, 148, c.trim, c.glow, true);
+      drawWindowGlow(ctx, bLeft + 352, bTop + 196, 138, 142, c.trim, c.glow, false);
+
+      // Warm wall sconces casting realistic glow halos
+      const sconceXs = [bLeft + 185, bLeft + 339];
+      for (const sx of sconceXs) {
+        const sy = bTop + 216;
+        const sg = ctx.createRadialGradient(sx, sy, 2, sx, sy, 46);
+        sg.addColorStop(0, `#fff6d6`);
+        sg.addColorStop(0.28, `rgba(255,204,120,0.65)`);
+        sg.addColorStop(1, `rgba(255,204,120,0)`);
+        ctx.fillStyle = sg;
+        ctx.fillRect(sx - 46, sy - 46, 92, 92);
+      }
+
+      // Sidewalk & flagstone reflection
+      const sidewalk = ctx.createLinearGradient(0, bTop + bH, 0, h);
+      sidewalk.addColorStop(0, `#6b5d52`);
+      sidewalk.addColorStop(1, `#443931`);
+      ctx.fillStyle = sidewalk;
+      ctx.fillRect(0, bTop + bH, w, h - (bTop + bH));
+
+      // Warm reflection pool on pavement beneath windows
+      const paveGlow = ctx.createLinearGradient(0, bTop + bH, 0, h);
+      paveGlow.addColorStop(0, `rgba(255,206,132,0.28)`);
+      paveGlow.addColorStop(1, `rgba(255,206,132,0)`);
+      ctx.fillStyle = paveGlow;
+      ctx.fillRect(bLeft + 25, bTop + bH, bW - 50, h - (bTop + bH));
+
+      // Architectural trees & potted courtyard foliage
+      drawFoliageCluster(ctx, 48, 250, 56, c.foliage, rng);
+      drawFoliageCluster(ctx, 592, 245, 58, c.foliage, rng);
+      ctx.fillStyle = `#8c4328`;
+      ctx.fillRect(156, 316, 26, 24);
+      ctx.fillRect(458, 316, 26, 24);
+      drawFoliageCluster(ctx, 169, 304, 22, c.foliage, rng);
+      drawFoliageCluster(ctx, 471, 304, 22, c.foliage, rng);
+
+      applyFilmGrainAndVignette(ctx, w, h, rng, 0.045);
+    }
+
+    function renderDishPhoto(canvas, dish) {
+      if (!canvas) return;
+      const w = 560;
+      const h = 350;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext(`2d`);
+      if (!ctx) return;
+
+      const rng = createRng(hashString(dish.id));
+      const cx = w * 0.5;
+      const cy = h * 0.52;
+
+      // Tabletop surface (travertine / dark slate / warm walnut)
+      const isDarkTable = dish.photoStyle === `duck` || dish.photoStyle === `tart` || dish.photoStyle === `noodles`;
+      const tableGrad = ctx.createLinearGradient(0, 0, w, h);
+      if (isDarkTable) {
+        tableGrad.addColorStop(0, `#3b322d`);
+        tableGrad.addColorStop(1, `#211b17`);
+      } else {
+        tableGrad.addColorStop(0, `#e6d7c3`);
+        tableGrad.addColorStop(1, `#c8b39a`);
+      }
+      ctx.fillStyle = tableGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Subtle marble / wood grain streaks
+      ctx.save();
+      ctx.strokeStyle = isDarkTable ? `rgba(255,244,230,0.04)` : `rgba(80,60,42,0.07)`;
+      for (let i = 0; i < 18; i++) {
+        ctx.lineWidth = 1 + rng() * 2;
+        ctx.beginPath();
+        const y0 = rng() * h;
+        ctx.moveTo(0, y0);
+        ctx.bezierCurveTo(w * 0.3, y0 + (rng() - 0.5) * 40, w * 0.7, y0 + (rng() - 0.5) * 40, w, y0 + (rng() - 0.5) * 20);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Linen napkin corner
+      ctx.save();
+      ctx.fillStyle = isDarkTable ? `#4d4139` : `#f5efe6`;
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.55);
+      ctx.lineTo(135, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Soft directional plate shadow
+      const pShadow = ctx.createRadialGradient(cx + 18, cy + 16, 40, cx + 18, cy + 16, 165);
+      pShadow.addColorStop(0, `rgba(18,12,8,0.48)`);
+      pShadow.addColorStop(1, `rgba(18,12,8,0)`);
+      ctx.fillStyle = pShadow;
+      ctx.fillRect(0, 0, w, h);
+
+      // Ceramic stoneware plate
+      const plateR = 134;
+      const rimGrad = ctx.createLinearGradient(cx - plateR, cy - plateR, cx + plateR, cy + plateR);
+      if (dish.photoStyle === `laksa` || dish.photoStyle === `duck`) {
+        rimGrad.addColorStop(0, `#3a3634`);
+        rimGrad.addColorStop(1, `#1e1b1a`);
+      } else {
+        rimGrad.addColorStop(0, `#fbf7f0`);
+        rimGrad.addColorStop(1, `#dfd4c5`);
+      }
+      ctx.fillStyle = rimGrad;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, plateR, plateR * 0.88, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Plate inner well
+      ctx.strokeStyle = `rgba(0,0,0,0.08)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, plateR * 0.78, plateR * 0.68, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Dish-specific realistic food rendering
+      const s = dish.photoStyle;
+      if (s === `seabass`) {
+        // Saffron emulsion pool
+        const sauce = ctx.createRadialGradient(cx, cy + 6, 10, cx, cy + 6, 94);
+        sauce.addColorStop(0, `#e8b238`);
+        sauce.addColorStop(0.7, `#d99326`);
+        sauce.addColorStop(1, `rgba(217,147,38,0)`);
+        ctx.fillStyle = sauce;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 8, 92, 62, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sea bass fillet with golden seared skin
+        const fish = ctx.createLinearGradient(cx - 75, cy - 30, cx + 75, cy + 30);
+        fish.addColorStop(0, `#8c5228`);
+        fish.addColorStop(0.45, `#c98849`);
+        fish.addColorStop(1, `#f2d9b3`);
+        ctx.fillStyle = fish;
+        ctx.beginPath();
+        ctx.ellipse(cx - 5, cy, 76, 32, -0.18, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Blistered cherry tomatoes
+        for (let i = 0; i < 6; i++) {
+          const tx = cx - 60 + rng() * 120;
+          const ty = cy - 45 + rng() * 88;
+          ctx.fillStyle = `#c93824`;
+          ctx.beginPath();
+          ctx.arc(tx, ty, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = `rgba(255,255,255,0.45)`;
+          ctx.beginPath();
+          ctx.arc(tx - 3, ty - 3, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Charred lemon & herbs
+        ctx.fillStyle = `#f2cf4e`;
+        ctx.beginPath();
+        ctx.arc(cx + 68, cy - 22, 18, 0.2, Math.PI + 0.2);
+        ctx.fill();
+      } else if (s === `flatbread`) {
+        // Blistered sourdough crust
+        const crust = ctx.createRadialGradient(cx, cy, 20, cx, cy, 108);
+        crust.addColorStop(0, `#edd2a4`);
+        crust.addColorStop(0.82, `#d4a261`);
+        crust.addColorStop(1, `#73421c`);
+        ctx.fillStyle = crust;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 106, 86, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Char blisters
+        for (let i = 0; i < 18; i++) {
+          const ang = rng() * Math.PI * 2;
+          ctx.fillStyle = `#3d210e`;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(ang) * 92, cy + Math.sin(ang) * 74, 3 + rng() * 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Heirloom tomato slices & burrata dome
+        for (let i = 0; i < 7; i++) {
+          const ang = i * 0.9;
+          ctx.fillStyle = i % 2 === 0 ? `#c73c26` : `#e38c2d`;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(ang) * 48, cy + Math.sin(ang) * 38, 17, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = `#fbf8f2`;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 4, 34, 28, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (s === `risotto`) {
+        const ris = ctx.createRadialGradient(cx, cy, 8, cx, cy, 88);
+        ris.addColorStop(0, `#f5e7bd`);
+        ris.addColorStop(0.75, `#dec283`);
+        ris.addColorStop(1, `#b89352`);
+        ctx.fillStyle = ris;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 4, 86, 68, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Roasted chanterelles & truffle shavings
+        for (let i = 0; i < 11; i++) {
+          const mx = cx - 48 + rng() * 96;
+          const my = cy - 32 + rng() * 64;
+          ctx.fillStyle = i % 3 === 0 ? `#261c17` : `#9e6734`;
+          ctx.beginPath();
+          ctx.ellipse(mx, my, 10 + rng() * 6, 5 + rng() * 4, rng() * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (s === `noodles` || s === `laksa`) {
+        // Rich broth or tare
+        const broth = ctx.createRadialGradient(cx, cy, 12, cx, cy, 100);
+        broth.addColorStop(0, s === `laksa` ? `#e67e35` : `#8c2f1b`);
+        broth.addColorStop(1, s === `laksa` ? `#b84a20` : `#4f180e`);
+        ctx.fillStyle = broth;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 102, 86, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Coiled noodle ribbons
+        ctx.strokeStyle = `#f4dfb6`;
+        ctx.lineWidth = 4.5;
+        for (let i = 0; i < 14; i++) {
+          ctx.beginPath();
+          ctx.arc(cx + (rng() - 0.5) * 32, cy + (rng() - 0.5) * 24, 18 + rng() * 38, rng() * 2, rng() * 2 + 2.4);
+          ctx.stroke();
+        }
+        if (s === `laksa`) {
+          // Prawns & soft egg
+          for (let p = 0; p < 3; p++) {
+            ctx.strokeStyle = `#f07454`;
+            ctx.lineWidth = 11;
+            ctx.lineCap = `round`;
+            ctx.beginPath();
+            ctx.arc(cx - 28 + p * 28, cy - 12, 18, 0.4, 2.7);
+            ctx.stroke();
+          }
+          ctx.fillStyle = `#fff9f0`;
+          ctx.beginPath();
+          ctx.ellipse(cx + 42, cy + 20, 18, 13, 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = `#f29f24`;
+          ctx.beginPath();
+          ctx.arc(cx + 42, cy + 20, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (s === `duck`) {
+        // Parsnip puree & jus
+        ctx.fillStyle = `#f0e4cc`;
+        ctx.beginPath();
+        ctx.ellipse(cx - 20, cy + 16, 64, 34, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Fanned duck slices
+        for (let d = 0; d < 5; d++) {
+          const dx = cx - 44 + d * 22;
+          const dy = cy - 12 + d * 4;
+          ctx.fillStyle = `#b84a48`;
+          ctx.beginPath();
+          ctx.ellipse(dx, dy, 26, 12, -0.45, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = `#633118`;
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
+        // Caramelized figs
+        ctx.fillStyle = `#592238`;
+        ctx.beginPath();
+        ctx.arc(cx + 56, cy + 18, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `#c94456`;
+        ctx.beginPath();
+        ctx.arc(cx + 56, cy + 18, 9, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (s === `harvestbowl`) {
+        ctx.fillStyle = `#f0dfc4`;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 6, 82, 64, 0, 0, Math.PI * 2);
+        ctx.fill();
+        for (let f = 0; f < 10; f++) {
+          const fx = cx - 52 + rng() * 104;
+          const fy = cy - 36 + rng() * 72;
+          ctx.fillStyle = f % 2 === 0 ? `#d6984b` : `#ebd6af`;
+          ctx.beginPath();
+          ctx.arc(fx, fy, 11 + rng() * 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Pomegranate arils
+        for (let p = 0; p < 16; p++) {
+          ctx.fillStyle = `#a81d34`;
+          ctx.beginPath();
+          ctx.arc(cx - 56 + rng() * 112, cy - 40 + rng() * 80, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        /* Pastry tart / mille-feuille */
+        ctx.fillStyle = `#c78f48`;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 74, 58, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = s === `tart` ? `#2b1710` : `#f5ead5`;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 3, 64, 48, 0, 0, Math.PI * 2);
+        ctx.fill();
+        for (let n = 0; n < 14; n++) {
+          ctx.fillStyle = s === `tart` ? `#b8864d` : `#659c57`;
+          ctx.beginPath();
+          ctx.arc(cx - 38 + rng() * 76, cy - 26 + rng() * 52, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Microgreens & glossy olive oil / specular droplets
+      for (let g = 0; g < 12; g++) {
+        const gx = cx - 58 + rng() * 116;
+        const gy = cy - 42 + rng() * 84;
+        ctx.fillStyle = g % 2 === 0 ? `#366939` : `#5a8c4a`;
+        ctx.beginPath();
+        ctx.ellipse(gx, gy, 6, 2.5, rng() * Math.PI, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      applyFilmGrainAndVignette(ctx, w, h, rng, 0.04);
+    }
+
+    function paintAllCanvases() {
+      const canvases = document.querySelectorAll(`canvas[data-photo-type]`);
+      for (let i = 0; i < canvases.length; i++) {
+        const cv = canvases[i];
+        const type = cv.getAttribute(`data-photo-type`);
+        const id = cv.getAttribute(`data-photo-id`);
+        if (type === `arch`) {
+          const rest = RESTAURANTS.find(r => r.id === id);
+          const variant = cv.getAttribute(`data-photo-variant`) || `exterior`;
+          if (rest) renderArchitecturePhoto(cv, rest, variant);
+        } else if (type === `dish`) {
+          const dish = DISHES.find(d => d.id === id);
+          if (dish) renderDishPhoto(cv, dish);
+        }
+      }
+    }
+
+    /* ============================================================
+       ALLERGY MATCHING ENGINE (Checks full ingredient lists)
+       ============================================================ */
+    function normalizeToken(str) {
+      return String(str || ``).trim().toLowerCase();
+    }
+
+    function getDishMatchedAllergens(dish, activeAllergies) {
+      if (!activeAllergies || activeAllergies.length === 0) return [];
+      const matches = [];
+      const ingredientText = dish.ingredients.join(` `).toLowerCase();
+      const explicitTags = (dish.allergens || []).map(a => a.toLowerCase());
+
+      for (let i = 0; i < activeAllergies.length; i++) {
+        const rawAllergy = activeAllergies[i];
+        const term = normalizeToken(rawAllergy);
+        if (!term) continue;
+
+        let hit = explicitTags.some(t => t.includes(term) || term.includes(t));
+        if (!hit) {
+          // Singular/plural flexible match against full ingredient list
+          const singular = term.endsWith(`s`) && term.length > 3 ? term.slice(0, -1) : term;
+          if (ingredientText.includes(term) || ingredientText.includes(singular)) {
+            hit = true;
+          }
+          // Common culinary synonym matching for top allergens
+          if (!hit && term === `dairy` && (ingredientText.includes(`cheese`) || ingredientText.includes(`butter`) || ingredientText.includes(`cream`) || ingredientText.includes(`burrata`) || ingredientText.includes(`milk`) || ingredientText.includes(`parmigiano`) || ingredientText.includes(`parmesan`) || ingredientText.includes(`comté`))) hit = true;
+          if (!hit && term === `gluten` && (ingredientText.includes(`wheat`) || ingredientText.includes(`sourdough`) || ingredientText.includes(`pastry`) || ingredientText.includes(`noodle`))) hit = true;
+          if (!hit && term === `tree nuts` && (ingredientText.includes(`hazelnut`) || ingredientText.includes(`pistachio`) || ingredientText.includes(`pine nut`) || ingredientText.includes(`almond`) || ingredientText.includes(`walnut`))) hit = true;
+          if (!hit && term === `shellfish` && (ingredientText.includes(`prawn`) || ingredientText.includes(`shrimp`) || ingredientText.includes(`crab`) || ingredientText.includes(`lobster`))) hit = true;
+          if (!hit && term === `sesame` && ingredientText.includes(`tahini`)) hit = true;
+          if (!hit && term === `soy` && ingredientText.includes(`soybean`)) hit = true;
+        }
+        if (hit && !matches.includes(rawAllergy)) {
+          matches.push(rawAllergy);
+        }
+      }
+      return matches;
+    }
+
+    function getSafeDishesForRestaurant(restaurantId) {
+      const restDishes = DISHES.filter(d => d.restaurantId === restaurantId);
+      return restDishes.filter(d => getDishMatchedAllergens(d, appState.user.allergies).length === 0);
+    }
+
+    function isHeroDonor(restaurantId) {
+      return appState.heroDonorIds.includes(restaurantId);
+    }
+
+    /* ============================================================
+       STATE PERSISTENCE & NAVIGATION
+       ============================================================ */
+    async function saveState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+        try {
+          await window.notebookAppApi.setAppState(appState);
+        } catch (e) {
+          /* Ignore transient storage failure */
+        }
+      }
+    }
+
+    function refreshIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function showToast(message) {
+      const region = document.getElementById(`toast-region`);
+      if (!region) return;
+      const item = document.createElement(`div`);
+      item.className = `toast-item`;
+      item.textContent = message;
+      region.appendChild(item);
+      setTimeout(() => {
+        if (item.parentNode === region) region.removeChild(item);
+      }, 3600);
+    }
+
+    function updateHeaderStatus() {
+      const userText = document.getElementById(`header-user-text`);
+      if (userText) {
+        const displayName = appState.user.name ? appState.user.name : `Guest Diner`;
+        const count = appState.user.allergies.length;
+        userText.textContent = `${displayName} · ${appState.user.location} · ${count} Allerg${count === 1 ? `y` : `ies`}`;
+      }
+      const cartText = document.getElementById(`header-cart-text`);
+      if (cartText) {
+        const totalQty = Object.values(appState.cart).reduce((sum, q) => sum + q, 0);
+        cartText.textContent = `${appState.orderMode === `takeaway` ? `Takeaway` : `Order`} (${totalQty})`;
+      }
+    }
+
+    function navigateTo(viewName) {
+      appState.currentView = viewName;
+      const views = [`registration`, `home`, `detail`, `menu`, `giveaway`];
+      for (let i = 0; i < views.length; i++) {
+        const v = views[i];
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.hidden = (v !== viewName);
+      }
+
+      const navBtns = document.querySelectorAll(`.step-btn[data-view]`);
+      for (let i = 0; i < navBtns.length; i++) {
+        const btn = navBtns[i];
+        btn.classList.toggle(`is-active`, btn.getAttribute(`data-view`) === viewName);
+      }
+
+      renderActiveView();
+      updateHeaderStatus();
+      saveState();
+      if (typeof window.scrollTo === `function`) {
+        window.scrollTo({ top: 0, behavior: `smooth` });
+      }
+    }
+
+    function renderActiveView() {
+      const v = appState.currentView;
+      if (v === `registration`) renderRegistrationView();
+      if (v === `home`) renderHomeView();
+      if (v === `detail`) renderDetailView();
+      if (v === `menu`) renderMenuView();
+      if (v === `giveaway`) renderGiveawayView();
+      paintAllCanvases();
+      refreshIcons();
+    }
+
+    /* ============================================================
+       PAGE 1: REGISTRATION LOGIC
+       ============================================================ */
+    function renderRegistrationView() {
+      const nameInput = document.getElementById(`reg-name`);
+      const emailInput = document.getElementById(`reg-email`);
+      const locSelect = document.getElementById(`reg-location`);
+      if (nameInput && !nameInput.value && appState.user.name) nameInput.value = appState.user.name;
+      if (emailInput && !emailInput.value && appState.user.email) emailInput.value = appState.user.email;
+      if (locSelect && appState.user.location) locSelect.value = appState.user.location;
+
+      const chipsWrap = document.getElementById(`reg-allergy-chips`);
+      if (chipsWrap) {
+        chipsWrap.innerHTML = COMMON_ALLERGENS.map(allergen => {
+          const selected = appState.user.allergies.some(a => normalizeToken(a) === normalizeToken(allergen));
+          return `<button type="button" class="chip-toggle ${selected ? `is-selected` : ``}" onclick="toggleRegistrationAllergy(\`${allergen}\`)">${selected ? `✓ ` : ``}${allergen}</button>`;
+        }).join(``);
+      }
+
+      const activeWrap = document.getElementById(`reg-active-allergies`);
+      const countEl = document.getElementById(`reg-allergy-count`);
+      if (countEl) countEl.textContent = String(appState.user.allergies.length);
+      if (activeWrap) {
+        if (appState.user.allergies.length === 0) {
+          activeWrap.innerHTML = `<span class="field-hint">No allergies blacklisted yet. Select chips above or add a custom ingredient.</span>`;
+        } else {
+          activeWrap.innerHTML = appState.user.allergies.map(a =>
+            `<span class="allergy-pill"><span>${escapeHtml(a)}</span><button type="button" class="allergy-remove" onclick="removeAllergy(\`${escapeAttr(a)}\`)" aria-label="Remove ${escapeAttr(a)}">×</button></span>`
+          ).join(``);
+        }
+      }
+
+      const totalMeals = calculateTotalDonatedMeals();
+      const statMeals = document.getElementById(`reg-stat-meals`);
+      if (statMeals) statMeals.textContent = totalMeals.toLocaleString();
+    }
+
+    function toggleRegistrationAllergy(allergen) {
+      const idx = appState.user.allergies.findIndex(a => normalizeToken(a) === normalizeToken(allergen));
+      if (idx >= 0) {
+        appState.user.allergies.splice(idx, 1);
+      } else {
+        appState.user.allergies.push(allergen);
+      }
+      renderRegistrationView();
+      updateHeaderStatus();
+      saveState();
+    }
+
+    function addAllergyFromRegistration() {
+      const input = document.getElementById(`reg-custom-allergy`);
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) return;
+      addAllergyItem(val);
+      input.value = ``;
+      renderRegistrationView();
+    }
+
+    function addAllergyItem(rawValue) {
+      const clean = rawValue.trim();
+      if (!clean) return false;
+      const exists = appState.user.allergies.some(a => normalizeToken(a) === normalizeToken(clean));
+      if (!exists) {
+        appState.user.allergies.push(clean);
+        updateHeaderStatus();
+        saveState();
+        return true;
+      }
+      return false;
+    }
+
+    function removeAllergy(allergen) {
+      appState.user.allergies = appState.user.allergies.filter(a => normalizeToken(a) !== normalizeToken(allergen));
+      renderActiveView();
+      updateHeaderStatus();
+      saveState();
+      showToast(`Removed "${allergen}" from allergy blacklist.`);
+    }
+
+    function fillDemoProfile() {
+      const nameInput = document.getElementById(`reg-name`);
+      const emailInput = document.getElementById(`reg-email`);
+      const locSelect = document.getElementById(`reg-location`);
+      if (nameInput) nameInput.value = `Elena Vance`;
+      if (emailInput) emailInput.value = `elena.vance@example.com`;
+      if (locSelect) locSelect.value = `Arts District`;
+      appState.user = {
+        name: `Elena Vance`,
+        email: `elena.vance@example.com`,
+        location: `Arts District`,
+        allergies: [`Peanuts`, `Shellfish`]
+      };
+      appState.registered = true;
+      renderRegistrationView();
+      updateHeaderStatus();
+      saveState();
+      showToast(`Loaded sample profile for Elena Vance.`);
+    }
+
+    function handleRegistrationSubmit(event) {
+      event.preventDefault();
+      const nameInput = document.getElementById(`reg-name`);
+      const emailInput = document.getElementById(`reg-email`);
+      const locSelect = document.getElementById(`reg-location`);
+      const errName = document.getElementById(`err-reg-name`);
+      const errEmail = document.getElementById(`err-reg-email`);
+      const feedback = document.getElementById(`reg-feedback`);
+
+      const nameVal = nameInput ? nameInput.value.trim() : ``;
+      const emailVal = emailInput ? emailInput.value.trim() : ``;
+      const locVal = locSelect ? locSelect.value : `Arts District`;
+
+      let valid = true;
+      if (errName) errName.textContent = ``;
+      if (errEmail) errEmail.textContent = ``;
+
+      if (nameVal.length < 2) {
+        if (errName) errName.textContent = `Please enter your name (at least 2 characters).`;
+        valid = false;
+      }
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+      if (!emailOk) {
+        if (errEmail) errEmail.textContent = `Please enter a valid email address (e.g., name@example.com).`;
+        valid = false;
+      }
+
+      if (!valid) {
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.className = `feedback-banner is-error`;
+          feedback.textContent = `Please review the highlighted fields above before continuing.`;
+        }
+        return;
+      }
+
+      if (feedback) feedback.hidden = true;
+      appState.user.name = nameVal;
+      appState.user.email = emailVal;
+      appState.user.location = locVal;
+      appState.registered = true;
+
+      saveState();
+      showToast(`Welcome to Feasto, ${nameVal}! ${appState.user.allergies.length} allergen filter(s) active.`);
+      navigateTo(`home`);
+    }
+
+    /* ============================================================
+       PAGE 2: HOME & CURATED RESTAURANTS
+       ============================================================ */
+    function calculateTotalDonatedMeals() {
+      const base = RESTAURANTS.reduce((sum, r) => sum + r.donatedMeals, 0);
+      const extra = appState.donations.slice(INITIAL_DONATIONS.length).reduce((sum, d) => sum + Number(d.portions || 0), 0);
+      return base + extra;
+    }
+
+    function setHeroFilter(mode) {
+      appState.heroFilter = mode;
+      const allBtn = document.getElementById(`filter-all-btn`);
+      const heroBtn = document.getElementById(`filter-hero-btn`);
+      if (allBtn) allBtn.classList.toggle(`is-active`, mode === `all`);
+      if (heroBtn) heroBtn.classList.toggle(`is-active`, mode === `hero`);
+      renderHomeGrid();
+      paintAllCanvases();
+      refreshIcons();
+    }
+
+    function renderHomeView() {
+      const lede = document.getElementById(`home-greeting-lede`);
+      if (lede) {
+        const who = appState.user.name ? `Welcome back, ${appState.user.name} (${appState.user.location}). ` : ``;
+        const allergyNote = appState.user.allergies.length > 0
+          ? `Filtering menus safely against: ${appState.user.allergies.join(`, `)}.`
+          : `No allergies blacklisted—all dishes currently visible.`;
+        lede.textContent = `${who}${allergyNote}`;
+      }
+
+      const kpiVenues = document.getElementById(`home-kpi-venues`);
+      const kpiHeroes = document.getElementById(`home-kpi-heroes`);
+      const kpiSafe = document.getElementById(`home-kpi-safe`);
+      const kpiMeals = document.getElementById(`home-kpi-meals`);
+
+      const totalSafe = DISHES.filter(d => getDishMatchedAllergens(d, appState.user.allergies).length === 0).length;
+      if (kpiVenues) kpiVenues.textContent = String(RESTAURANTS.length);
+      if (kpiHeroes) kpiHeroes.textContent = String(appState.heroDonorIds.length);
+      if (kpiSafe) kpiSafe.textContent = `${totalSafe}/${DISHES.length}`;
+      if (kpiMeals) kpiMeals.textContent = calculateTotalDonatedMeals().toLocaleString();
+
+      renderHomeGrid();
+    }
+
+    function renderHomeGrid() {
+      const grid = document.getElementById(`restaurant-grid`);
+      if (!grid) return;
+
+      const searchEl = document.getElementById(`home-search`);
+      const locEl = document.getElementById(`home-location-filter`);
+      const query = searchEl ? searchEl.value.trim().toLowerCase() : ``;
+      const loc = locEl ? locEl.value : `all`;
+
+      const filtered = RESTAURANTS.filter(r => {
+        if (appState.heroFilter === `hero` && !isHeroDonor(r.id)) return false;
+        if (loc !== `all` && r.neighborhood !== loc) return false;
+        if (query) {
+          const hay = `${r.name} ${r.cuisine} ${r.neighborhood} ${r.background}`.toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="panel" style="grid-column: 1 / -1;"><h3 class="subhead">No kitchens match that filter</h3><p class="field-hint">Try clearing your neighborhood filter or switching back to All Venues.</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top: var(--space-sm);" onclick="resetHomeFilters()">Reset Filters</button></div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(r => {
+        const hero = isHeroDonor(r.id);
+        const safeCount = getSafeDishesForRestaurant(r.id).length;
+        const totalCount = DISHES.filter(d => d.restaurantId === r.id).length;
+        const extraDonations = appState.donations
+          .slice(INITIAL_DONATIONS.length)
+          .filter(d => d.donorId === r.id)
+          .reduce((s, d) => s + Number(d.portions || 0), 0);
+        const totalDonated = r.donatedMeals + extraDonations;
+
+        return `
+          <div class="card-wrapper">
+            <article class="restaurant-card">
+              <div class="photo-frame">
+                <canvas class="photo-canvas" data-photo-type="arch" data-photo-id="${r.id}" data-photo-variant="exterior" aria-label="Architectural facade photograph of ${escapeAttr(r.name)}"></canvas>
+                ${hero ? `<div class="photo-badge-overlay"><span class="badge-emerald"><i data-lucide="award" aria-hidden="true"></i><span>Hero Donor</span></span></div>` : ``}
+                <div class="photo-rating-overlay">★ ${r.rating.toFixed(1)} (${r.reviewCount})</div>
+              </div>
+              <div class="card-body">
+                <div class="card-meta-row">
+                  <span>${escapeHtml(r.cuisine)}</span>
+                  <span>${escapeHtml(r.neighborhood)} · ${r.priceTier}</span>
+                </div>
+                <h2 class="subhead" style="margin-bottom: 0;">${escapeHtml(r.name)}</h2>
+                <p class="field-hint" style="margin: 0;">${escapeHtml(r.background.slice(0, 128))}…</p>
+                <div class="chip-group" style="margin-top: var(--space-xs);">
+                  <span class="badge-neutral">${safeCount}/${totalCount} allergy-safe dishes</span>
+                  ${hero ? `<span class="badge-terracotta">${totalDonated} meals rescued</span>` : ``}
+                </div>
+                <div class="card-actions">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="selectRestaurant('${r.id}', 'detail')">
+                    <span>Enquire &amp; Details</span>
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="selectRestaurant('${r.id}', 'menu')">
+                    <span>Order / Takeaway</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        `;
+      }).join(``);
+    }
+
+    function resetHomeFilters() {
+      const searchEl = document.getElementById(`home-search`);
+      const locEl = document.getElementById(`home-location-filter`);
+      if (searchEl) searchEl.value = ``;
+      if (locEl) locEl.value = `all`;
+      setHeroFilter(`all`);
+    }
+
+    function selectRestaurant(restaurantId, targetView) {
+      appState.selectedRestaurantId = restaurantId;
+      saveState();
+      if (targetView) {
+        navigateTo(targetView);
+      } else {
+        renderActiveView();
+      }
+    }
+
+    /* ============================================================
+       PAGE 3: RESTAURANT DETAIL, ENQUIRY & RESERVATION MODAL
+       ============================================================ */
+    function populateRestaurantSelectors() {
+      const selDetail = document.getElementById(`detail-restaurant-select`);
+      const selMenu = document.getElementById(`menu-restaurant-select`);
+      const selDon = document.getElementById(`don-restaurant`);
+      const optionsHtml = RESTAURANTS.map(r => `<option value="${r.id}">${escapeHtml(r.name)} (${escapeHtml(r.neighborhood)})</option>`).join(``);
+
+      if (selDetail) {
+        selDetail.innerHTML = optionsHtml;
+        selDetail.value = appState.selectedRestaurantId;
+      }
+      if (selMenu) {
+        selMenu.innerHTML = optionsHtml;
+        selMenu.value = appState.selectedRestaurantId;
+      }
+      if (selDon) {
+        selDon.innerHTML = optionsHtml;
+      }
+    }
+
+    function openMenuMode(mode) {
+      appState.orderMode = mode;
+      navigateTo(`menu`);
+    }
+
+    function renderDetailView() {
+      populateRestaurantSelectors();
+      const rest = RESTAURANTS.find(r => r.id === appState.selectedRestaurantId) || RESTAURANTS[0];
+      const hero = isHeroDonor(rest.id);
+
+      const heroCard = document.getElementById(`detail-hero-card`);
+      if (heroCard) {
+        heroCard.innerHTML = `
+          <div class="split-layout" style="align-items: center;">
+            <div class="photo-frame" style="border-radius: var(--rounded-lg);">
+              <canvas class="photo-canvas" data-photo-type="arch" data-photo-id="${rest.id}" data-photo-variant="exterior" aria-label="Architectural street view of ${escapeAttr(rest.name)}"></canvas>
+              ${hero ? `<div class="photo-badge-overlay"><span class="badge-emerald"><i data-lucide="award" aria-hidden="true"></i><span>Hero Donor Partner</span></span></div>` : ``}
+            </div>
+            <div class="form-grid" style="gap: var(--space-sm);">
+              <span class="kicker">${escapeHtml(rest.cuisine)} · ${escapeHtml(rest.neighborhood)}</span>
+              <h1 class="title" style="margin-bottom: 0;">${escapeHtml(rest.name)}</h1>
+              <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center;">
+                <span class="badge-terracotta">★ ${rest.rating.toFixed(1)} (${rest.reviewCount} reviews)</span>
+                <span class="badge-neutral">${rest.priceTier}</span>
+                ${hero ? `<span class="badge-emerald"><i data-lucide="shield-check" aria-hidden="true"></i><span>Hero Donor Verified</span></span>` : `<span class="badge-neutral">Eligible for Hero Donor Badge</span>`}
+              </div>
+              <p class="lede">${escapeHtml(rest.background)}</p>
+              <div class="card-actions">
+                <button type="button" class="btn btn-primary" onclick="openMenuMode('order')">
+                  <i data-lucide="truck" aria-hidden="true"></i>
+                  <span>Order Delivery</span>
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="openMenuMode('takeaway')">
+                  <i data-lucide="shopping-bag" aria-hidden="true"></i>
+                  <span>Order Takeaway</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const galleryGrid = document.getElementById(`detail-gallery-grid`);
+      if (galleryGrid) {
+        const frames = [
+          { variant: `exterior`, title: `Architectural Street Facade`, caption: `${rest.neighborhood} evening exterior` },
+          { variant: `interior`, title: `Main Dining Hall`, caption: `Warm tungsten lighting & timber joinery` },
+          { variant: `terrace`, title: `Courtyard Terrace`, caption: `Shaded pergola & olive planters` }
+        ];
+        galleryGrid.innerHTML = frames.map(f => `
+          <figure class="panel-pure" style="margin: 0; padding: var(--space-sm);">
+            <div class="photo-frame" style="border-radius: var(--rounded);">
+              <canvas class="photo-canvas" data-photo-type="arch" data-photo-id="${rest.id}" data-photo-variant="${f.variant}" aria-label="${escapeAttr(f.title)} at ${escapeAttr(rest.name)}"></canvas>
+            </div>
+            <figcaption style="padding: var(--space-sm) var(--space-xs) 0;">
+              <strong style="display: block; font-size: 0.9rem;">${f.title}</strong>
+              <span class="field-hint">${f.caption}</span>
+            </figcaption>
+          </figure>
+        `).join(``);
+      }
+
+      const bgContent = document.getElementById(`detail-background-content`);
+      if (bgContent) {
+        bgContent.innerHTML = `
+          <div class="review-card">
+            <strong>Street Address &amp; Neighborhood</strong>
+            <span class="field-hint">${escapeHtml(rest.address)}</span>
+          </div>
+          <div class="review-card">
+            <strong>Operating Hours</strong>
+            <span class="field-hint">${escapeHtml(rest.hours)}</span>
+          </div>
+          <div class="review-card">
+            <strong>Architectural Capacity</strong>
+            <span class="field-hint">${escapeHtml(rest.capacity)}</span>
+          </div>
+          <div class="review-card">
+            <strong>Transit &amp; Accessibility</strong>
+            <span class="field-hint">${escapeHtml(rest.transit)}</span>
+          </div>
+        `;
+      }
+
+      const reviewsList = document.getElementById(`detail-reviews-list`);
+      if (reviewsList) {
+        reviewsList.innerHTML = rest.reviews.map(rev => `
+          <div class="review-card">
+            <div class="card-meta-row">
+              <strong>${escapeHtml(rev.author)}</strong>
+              <span>★ ${rev.rating} · ${escapeHtml(rev.date)}</span>
+            </div>
+            <p style="margin: 0; font-size: 0.92rem; color: var(--on-surface-variant);">${escapeHtml(rev.text)}</p>
+          </div>
+        `).join(``);
+      }
+
+      // Default reservation date to tomorrow (Nov 15, 2026) if empty
+      const resDate = document.getElementById(`res-date`);
+      if (resDate && !resDate.value) {
+        resDate.value = `2026-11-15`;
+      }
+    }
+
+    function handleReservationSubmit(event) {
+      event.preventDefault();
+      const rest = RESTAURANTS.find(r => r.id === appState.selectedRestaurantId) || RESTAURANTS[0];
+      const dateEl = document.getElementById(`res-date`);
+      const timeEl = document.getElementById(`res-time`);
+      const guestsEl = document.getElementById(`res-guests`);
+      const seatingEl = document.getElementById(`res-seating`);
+      const notesEl = document.getElementById(`res-notes`);
+      const errEl = document.getElementById(`res-form-error`);
+
+      const dateVal = dateEl ? dateEl.value : ``;
+      if (!dateVal) {
+        if (errEl) errEl.textContent = `Please select a reservation date.`;
+        return;
+      }
+      if (errEl) errEl.textContent = ``;
+
+      const timeVal = timeEl ? timeEl.value : `19:30`;
+      const guestsVal = guestsEl ? guestsEl.value : `4`;
+      const seatingVal = seatingEl ? seatingEl.value : `Main Dining Hall`;
+      const notesVal = notesEl ? notesEl.value.trim() : ``;
+      const refCode = `FST-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const record = {
+        refCode,
+        restaurantId: rest.id,
+        restaurantName: rest.name,
+        date: dateVal,
+        time: timeVal,
+        guests: guestsVal,
+        seating: seatingVal,
+        notes: notesVal
+      };
+      appState.reservations.unshift(record);
+      saveState();
+
+      openReservationModal(record);
+    }
+
+    function openReservationModal(record) {
+      const modal = document.getElementById(`reservation-modal`);
+      const body = document.getElementById(`modal-res-body`);
+      if (!modal || !body) return;
+
+      const dinerName = appState.user.name || `Guest Diner`;
+      const allergyLine = appState.user.allergies.length > 0
+        ? appState.user.allergies.join(`, `)
+        : `None specified`;
+
+      body.innerHTML = `
+        <div><strong>Confirmation Code:</strong> ${escapeHtml(record.refCode)}</div>
+        <div><strong>Restaurant:</strong> ${escapeHtml(record.restaurantName)}</div>
+        <div><strong>Guest:</strong> ${escapeHtml(dinerName)} (${escapeHtml(record.guests)} Guests)</div>
+        <div><strong>Date &amp; Time:</strong> ${escapeHtml(record.date)} at ${escapeHtml(record.time)}</div>
+        <div><strong>Architectural Zone:</strong> ${escapeHtml(record.seating)}</div>
+        <div><strong>Kitchen Allergy Alert Sent:</strong> ${escapeHtml(allergyLine)}</div>
+        ${record.notes ? `<div><strong>Special Notes:</strong> ${escapeHtml(record.notes)}</div>` : ``}
+      `;
+      modal.hidden = false;
+      refreshIcons();
+    }
+
+    function closeReservationModal() {
+      const modal = document.getElementById(`reservation-modal`);
+      if (modal) modal.hidden = true;
+    }
+
+    function closeReservationModalAndGoMenu() {
+      closeReservationModal();
+      navigateTo(`menu`);
+    }
+
+    /* ============================================================
+       PAGE 4: MENU VIEW & DYNAMIC ALLERGY FILTER ENGINE
+       ============================================================ */
+    function setOrderMode(mode) {
+      appState.orderMode = mode;
+      const orderBtn = document.getElementById(`mode-order-btn`);
+      const takeawayBtn = document.getElementById(`mode-takeaway-btn`);
+      if (orderBtn) orderBtn.classList.toggle(`is-active`, mode === `order`);
+      if (takeawayBtn) takeawayBtn.classList.toggle(`is-active`, mode === `takeaway`);
+      renderCartPanel();
+      updateHeaderStatus();
+      saveState();
+    }
+
+    function handleMenuAllergyAdd(event) {
+      event.preventDefault();
+      const input = document.getElementById(`menu-allergy-input`);
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) return;
+      const added = addAllergyItem(val);
+      input.value = ``;
+      renderMenuView();
+      paintAllCanvases();
+      refreshIcons();
+      if (added) {
+        showToast(`Filtered out dishes containing "${val}".`);
+      } else {
+        showToast(`"${val}" is already on your allergy blacklist.`);
+      }
+    }
+
+    function quickAddAllergy(ingredient) {
+      const added = addAllergyItem(ingredient);
+      renderMenuView();
+      paintAllCanvases();
+      refreshIcons();
+      if (added) {
+        showToast(`Blacklisted "${ingredient}" — menu updated immediately.`);
+      }
+    }
+
+    function toggleShowFilteredOut() {
+      appState.showFilteredOut = !appState.showFilteredOut;
+      renderMenuView();
+      paintAllCanvases();
+      refreshIcons();
+    }
+
+    function renderMenuView() {
+      populateRestaurantSelectors();
+      const rest = RESTAURANTS.find(r => r.id === appState.selectedRestaurantId) || RESTAURANTS[0];
+      const hero = isHeroDonor(rest.id);
+
+      const badgeSlot = document.getElementById(`menu-hero-badge-slot`);
+      if (badgeSlot) {
+        badgeSlot.innerHTML = hero
+          ? `<span class="badge-emerald"><i data-lucide="award" aria-hidden="true"></i><span>Hero Donor</span></span>`
+          : ``;
+      }
+
+      const orderBtn = document.getElementById(`mode-order-btn`);
+      const takeawayBtn = document.getElementById(`mode-takeaway-btn`);
+      if (orderBtn) orderBtn.classList.toggle(`is-active`, appState.orderMode === `order`);
+      if (takeawayBtn) takeawayBtn.classList.toggle(`is-active`, appState.orderMode === `takeaway`);
+
+      const menuHeading = document.getElementById(`menu-heading`);
+      if (menuHeading) {
+        menuHeading.innerHTML = `<em>${escapeHtml(rest.name)}</em> · Allergy-Safe Menu`;
+      }
+
+      // Render active allergy chips
+      const chipWrap = document.getElementById(`menu-active-allergies`);
+      if (chipWrap) {
+        if (appState.user.allergies.length === 0) {
+          chipWrap.innerHTML = `<span class="field-hint">No allergies registered yet. Add any ingredient below to filter the menu dynamically.</span>`;
+        } else {
+          chipWrap.innerHTML = appState.user.allergies.map(a =>
+            `<span class="allergy-pill"><span>Blacklisted: ${escapeHtml(a)}</span><button type="button" class="allergy-remove" onclick="removeAllergy(\`${escapeAttr(a)}\`)" aria-label="Remove ${escapeAttr(a)}">×</button></span>`
+          ).join(``);
+        }
+      }
+
+      // Partition dishes into safe vs filtered-out using DOM event state
+      const restDishes = DISHES.filter(d => d.restaurantId === rest.id);
+      const safeDishes = [];
+      const blockedDishes = [];
+
+      for (let i = 0; i < restDishes.length; i++) {
+        const d = restDishes[i];
+        const matched = getDishMatchedAllergens(d, appState.user.allergies);
+        if (matched.length === 0) {
+          safeDishes.push(d);
+        } else {
+          blockedDishes.push({ dish: d, matched });
+        }
+      }
+
+      const statusEl = document.getElementById(`allergy-status-summary`);
+      if (statusEl) {
+        statusEl.innerHTML = `<i data-lucide="shield-check" aria-hidden="true"></i><span>Showing ${safeDishes.length} safe of ${restDishes.length} dishes · ${blockedDishes.length} removed</span>`;
+      }
+
+      const toggleBtn = document.getElementById(`toggle-filtered-btn`);
+      if (toggleBtn) {
+        toggleBtn.textContent = appState.showFilteredOut
+          ? `Hide Filtered Dishes (${blockedDishes.length})`
+          : `Inspect Filtered Dishes (${blockedDishes.length})`;
+      }
+
+      const grid = document.getElementById(`menu-grid`);
+      if (grid) {
+        if (safeDishes.length === 0) {
+          grid.innerHTML = `
+            <div class="panel" style="grid-column: 1 / -1;">
+              <h3 class="subhead">All dishes at ${escapeHtml(rest.name)} matched your blacklisted ingredients</h3>
+              <p class="field-hint">Remove one of the allergy pills above or switch to another kitchen on the Home screen.</p>
+            </div>
+          `;
+        } else {
+          grid.innerHTML = safeDishes.map(d => renderDishCardHtml(d, [])).join(``);
+        }
+      }
+
+      const filteredSection = document.getElementById(`menu-filtered-section`);
+      const filteredGrid = document.getElementById(`menu-filtered-grid`);
+      if (filteredSection && filteredGrid) {
+        filteredSection.hidden = !(appState.showFilteredOut && blockedDishes.length > 0);
+        if (!filteredSection.hidden) {
+          filteredGrid.innerHTML = blockedDishes.map(item => renderDishCardHtml(item.dish, item.matched)).join(``);
+        }
+      }
+
+      renderCartPanel();
+    }
+
+    function renderDishCardHtml(dish, matchedAllergens) {
+      const isBlocked = matchedAllergens.length > 0;
+      const qty = appState.cart[dish.id] || 0;
+      const firstReview = dish.reviews[0];
+      const secondReview = dish.reviews[1];
+
+      return `
+        <div class="card-wrapper">
+          <article class="dish-card ${isBlocked ? `is-filtered-preview` : ``}">
+            <div class="photo-frame">
+              <canvas class="photo-canvas" data-photo-type="dish" data-photo-id="${dish.id}" aria-label="High-definition food photography of ${escapeAttr(dish.name)}"></canvas>
+              <div class="photo-badge-overlay">
+                ${isBlocked
+                  ? `<span class="badge-terracotta">Removed: Contains ${escapeHtml(matchedAllergens.join(`, `))}</span>`
+                  : `<span class="badge-emerald">${dish.calories} kcal</span>`}
+              </div>
+              <div class="photo-rating-overlay">★ ${dish.rating.toFixed(1)} (${dish.reviewCount})</div>
+            </div>
+
+            <div class="card-body">
+              <div class="card-meta-row">
+                <strong style="font-size: 1.05rem; color: var(--on-surface);">$${dish.price.toFixed(2)}</strong>
+                <span>${dish.calories} kcal · ${isBlocked ? `Allergen Match` : `Allergy-Safe`}</span>
+              </div>
+              <h3 class="subhead" style="margin-bottom: 0;">${escapeHtml(dish.name)}</h3>
+
+              <div class="ingredient-box">
+                <strong>Full Ingredient List</strong>
+                <span>${escapeHtml(dish.ingredients.join(`, `))}</span>
+              </div>
+
+              <div class="review-snippet">
+                <div><strong>${escapeHtml(firstReview.user)}</strong> (★ ${firstReview.rating}): “${escapeHtml(firstReview.comment)}”</div>
+                ${secondReview ? `<div style="margin-top: 4px;"><strong>${escapeHtml(secondReview.user)}</strong> (★ ${secondReview.rating}): “${escapeHtml(secondReview.comment)}”</div>` : ``}
+              </div>
+
+              <div class="card-actions">
+                ${isBlocked ? `
+                  <button type="button" class="btn btn-secondary btn-sm" disabled>Excluded by Allergy Filter</button>
+                ` : qty > 0 ? `
+                  <div class="qty-stepper">
+                    <button type="button" class="qty-btn" onclick="updateCartQty('${dish.id}', -1)" aria-label="Decrease quantity of ${escapeAttr(dish.name)}">−</button>
+                    <strong style="min-width: 24px; text-align: center;">${qty}</strong>
+                    <button type="button" class="qty-btn" onclick="updateCartQty('${dish.id}', 1)" aria-label="Increase quantity of ${escapeAttr(dish.name)}">+</button>
+                  </div>
+                ` : `
+                  <button type="button" class="btn btn-primary btn-sm" onclick="updateCartQty('${dish.id}', 1)">
+                    <i data-lucide="plus" aria-hidden="true"></i>
+                    <span>Add to ${appState.orderMode === `takeaway` ? `Takeaway` : `Order`}</span>
+                  </button>
+                `}
+              </div>
+            </div>
+          </article>
+        </div>
+      `;
+    }
+
+    function updateCartQty(dishId, delta) {
+      const current = appState.cart[dishId] || 0;
+      const next = current + delta;
+      if (next <= 0) {
+        delete appState.cart[dishId];
+      } else {
+        appState.cart[dishId] = next;
+      }
+      const confBox = document.getElementById(`order-confirmation-box`);
+      if (confBox) confBox.hidden = true;
+      renderMenuView();
+      paintAllCanvases();
+      updateHeaderStatus();
+      refreshIcons();
+      saveState();
+    }
+
+    function renderCartPanel() {
+      const rest = RESTAURANTS.find(r => r.id === appState.selectedRestaurantId) || RESTAURANTS[0];
+      const modeLabel = document.getElementById(`cart-mode-label`);
+      const restNameEl = document.getElementById(`cart-restaurant-name`);
+      const fulfillNote = document.getElementById(`cart-fulfillment-note`);
+      const itemsList = document.getElementById(`cart-items-list`);
+      const totalsEl = document.getElementById(`cart-totals`);
+      const placeBtn = document.getElementById(`place-order-btn`);
+      const placeLabel = document.getElementById(`place-order-label`);
+
+      const isTakeaway = appState.orderMode === `takeaway`;
+      if (modeLabel) modeLabel.textContent = isTakeaway ? `Takeaway Pickup` : `Delivery Order`;
+      if (restNameEl) restNameEl.textContent = rest.name;
+      if (fulfillNote) {
+        fulfillNote.textContent = isTakeaway
+          ? `Ready in 15–20 mins at ${rest.address}. Zero delivery fee.`
+          : `Courier delivery in 30–40 mins to ${appState.user.location}.`;
+      }
+      if (placeLabel) {
+        placeLabel.textContent = isTakeaway ? `Confirm Takeaway Pickup` : `Confirm Delivery Order`;
+      }
+
+      // Filter cart items that are safe & active
+      const entries = Object.entries(appState.cart).filter(([id, qty]) => {
+        const d = DISHES.find(item => item.id === id);
+        return d && qty > 0 && getDishMatchedAllergens(d, appState.user.allergies).length === 0;
+      });
+
+      if (entries.length === 0) {
+        if (itemsList) {
+          itemsList.innerHTML = `<p class="field-hint" style="padding-block: var(--space-md);">Your tray is empty. Add allergy-safe dishes from the menu to start your ${isTakeaway ? `takeaway` : `delivery`} order.</p>`;
+        }
+        if (totalsEl) totalsEl.innerHTML = ``;
+        if (placeBtn) placeBtn.disabled = true;
+        return;
+      }
+
+      if (placeBtn) placeBtn.disabled = false;
+      let subtotal = 0;
+      if (itemsList) {
+        itemsList.innerHTML = entries.map(([id, qty]) => {
+          const d = DISHES.find(item => item.id === id);
+          const lineTotal = d.price * qty;
+          subtotal += lineTotal;
+          return `
+            <div class="order-item-row">
+              <div>
+                <strong style="display: block; font-size: 0.9rem;">${escapeHtml(d.name)}</strong>
+                <span class="field-hint">$${d.price.toFixed(2)} each</span>
+              </div>
+              <div class="qty-stepper">
+                <button type="button" class="qty-btn" onclick="updateCartQty('${d.id}', -1)" aria-label="Remove one ${escapeAttr(d.name)}">−</button>
+                <span>${qty}</span>
+                <button type="button" class="qty-btn" onclick="updateCartQty('${d.id}', 1)" aria-label="Add one ${escapeAttr(d.name)}">+</button>
+              </div>
+            </div>
+          `;
+        }).join(``);
+      }
+
+      const fee = isTakeaway ? 0 : 3.5;
+      const total = subtotal + fee;
+      if (totalsEl) {
+        totalsEl.innerHTML = `
+          <div class="summary-line"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+          <div class="summary-line"><span>${isTakeaway ? `Takeaway Packaging` : `Courier Delivery Fee`}</span><span>$${fee.toFixed(2)}</span></div>
+          <div class="summary-line is-total"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+        `;
+      }
+    }
+
+    function placeCurrentOrder() {
+      const confBox = document.getElementById(`order-confirmation-box`);
+      const rest = RESTAURANTS.find(r => r.id === appState.selectedRestaurantId) || RESTAURANTS[0];
+      const orderNum = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+      const isTakeaway = appState.orderMode === `takeaway`;
+      const allergyNote = appState.user.allergies.length > 0
+        ? `Kitchen allergy seal applied (${appState.user.allergies.join(`, `)}).`
+        : `Standard kitchen preparation.`;
+
+      appState.cart = {};
+      renderCartPanel();
+      updateHeaderStatus();
+      saveState();
+
+      if (confBox) {
+        confBox.hidden = false;
+        confBox.className = `feedback-banner is-success`;
+        confBox.innerHTML = `<div><strong>${orderNum} Confirmed!</strong> ${isTakeaway ? `Takeaway ready in 15–20 mins at ${escapeHtml(rest.name)}.` : `Courier dispatched from ${escapeHtml(rest.name)} to ${escapeHtml(appState.user.location)}.`} ${escapeHtml(allergyNote)}</div>`;
+      }
+      showToast(`Order ${orderNum} confirmed!`);
+    }
+
+    /* ============================================================
+       PAGE 5: FOOD GIVEAWAY HUB & HERO DONOR BADGE ENGINE
+       ============================================================ */
+    let currentDonorType = `restaurant`;
+
+    function setDonorType(type) {
+      currentDonorType = type;
+      const rBtn = document.getElementById(`donor-type-restaurant`);
+      const iBtn = document.getElementById(`donor-type-individual`);
+      const rField = document.getElementById(`donor-restaurant-field`);
+      const iField = document.getElementById(`donor-individual-field`);
+      if (rBtn) rBtn.classList.toggle(`is-active`, type === `restaurant`);
+      if (iBtn) iBtn.classList.toggle(`is-active`, type === `individual`);
+      if (rField) rField.hidden = (type !== `restaurant`);
+      if (iField) iField.hidden = (type !== `individual`);
+    }
+
+    function renderGiveawayView() {
+      populateRestaurantSelectors();
+      const recSel = document.getElementById(`don-recipient`);
+      if (recSel) {
+        recSel.innerHTML = CARE_HOMES.map(c => `<option value="${escapeAttr(c.name)}">${escapeHtml(c.name)} (${escapeHtml(c.type)})</option>`).join(``);
+      }
+
+      const indInput = document.getElementById(`don-individual-name`);
+      if (indInput && !indInput.value && appState.user.name) {
+        indInput.value = appState.user.name;
+      }
+
+      const totalMeals = document.getElementById(`giveaway-total-meals`);
+      const heroCount = document.getElementById(`giveaway-hero-count`);
+      const dispCount = document.getElementById(`giveaway-dispatch-count`);
+      if (totalMeals) totalMeals.textContent = calculateTotalDonatedMeals().toLocaleString();
+      if (heroCount) heroCount.textContent = String(appState.heroDonorIds.length);
+      if (dispCount) dispCount.textContent = String(appState.donations.length);
+
+      const careGrid = document.getElementById(`care-homes-grid`);
+      if (careGrid) {
+        careGrid.innerHTML = CARE_HOMES.map(c => `
+          <article class="panel-pure form-grid" style="gap: var(--space-xs);">
+            <div class="card-meta-row">
+              <span class="badge-emerald">${escapeHtml(c.type)}</span>
+              <span>${escapeHtml(c.neighborhood)}</span>
+            </div>
+            <h3 class="subhead" style="margin-bottom: 0;">${escapeHtml(c.name)}</h3>
+            <div class="field-hint"><strong>Capacity:</strong> ${escapeHtml(c.residents)}</div>
+            <div class="field-hint"><strong>Tonight's Need:</strong> ${c.need}</div>
+          </article>
+        `).join(``);
+      }
+
+      const hallList = document.getElementById(`hero-hall-list`);
+      if (hallList) {
+        const heroes = RESTAURANTS.filter(r => isHeroDonor(r.id));
+        hallList.innerHTML = heroes.map(r => {
+          const extra = appState.donations
+            .slice(INITIAL_DONATIONS.length)
+            .filter(d => d.donorId === r.id)
+            .reduce((s, d) => s + Number(d.portions || 0), 0);
+          return `
+            <div class="review-card" style="flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-sm);">
+              <div>
+                <strong>${escapeHtml(r.name)}</strong>
+                <div class="field-hint">${escapeHtml(r.neighborhood)} · ${(r.donatedMeals + extra).toLocaleString()} meals rescued</div>
+              </div>
+              <span class="badge-emerald"><i data-lucide="award" aria-hidden="true"></i><span>Hero Donor</span></span>
+            </div>
+          `;
+        }).join(``);
+      }
+
+      const ledgerBody = document.getElementById(`giveaway-ledger-body`);
+      if (ledgerBody) {
+        ledgerBody.innerHTML = appState.donations.map(d => `
+          <tr>
+            <td>
+              <strong>${escapeHtml(d.donorName)}</strong>
+              <div class="field-hint">${d.foodDesc}</div>
+            </td>
+            <td>${escapeHtml(d.recipientName)}</td>
+            <td><strong>${d.portions}</strong></td>
+            <td>${escapeHtml(d.window)}</td>
+          </tr>
+        `).join(``);
+      }
+    }
+
+    function handleGiveawaySubmit(event) {
+      event.preventDefault();
+      const descEl = document.getElementById(`don-food-desc`);
+      const portionsEl = document.getElementById(`don-portions`);
+      const windowEl = document.getElementById(`don-window`);
+      const recipientEl = document.getElementById(`don-recipient`);
+      const safetyEl = document.getElementById(`don-safety-check`);
+      const errDesc = document.getElementById(`err-don-desc`);
+      const errPortions = document.getElementById(`err-don-portions`);
+      const errSafety = document.getElementById(`err-don-safety`);
+      const feedback = document.getElementById(`giveaway-feedback`);
+
+      if (errDesc) errDesc.textContent = ``;
+      if (errPortions) errPortions.textContent = ``;
+      if (errSafety) errSafety.textContent = ``;
+
+      const descVal = descEl ? descEl.value.trim() : ``;
+      const portionsVal = portionsEl ? parseInt(portionsEl.value, 10) : 0;
+      let valid = true;
+
+      if (descVal.length < 5) {
+        if (errDesc) errDesc.textContent = `Describe the cooked food available (at least 5 characters).`;
+        valid = false;
+      }
+      if (!portionsVal || portionsVal < 4) {
+        if (errPortions) errPortions.textContent = `Enter at least 4 meal portions.`;
+        valid = false;
+      }
+      if (safetyEl && !safetyEl.checked) {
+        if (errSafety) errSafety.textContent = `Please verify the food safety freshness check before scheduling.`;
+        valid = false;
+      }
+      if (!valid) return;
+
+      let donorId = null;
+      let donorName = `Community Host`;
+      let newlyAwarded = false;
+
+      if (currentDonorType === `restaurant`) {
+        const restSel = document.getElementById(`don-restaurant`);
+        donorId = restSel ? restSel.value : RESTAURANTS[0].id;
+        const restObj = RESTAURANTS.find(r => r.id === donorId);
+        donorName = restObj ? restObj.name : `Partner Kitchen`;
+        if (donorId && !appState.heroDonorIds.includes(donorId)) {
+          appState.heroDonorIds.push(donorId);
+          newlyAwarded = true;
+        }
+      } else {
+        const indEl = document.getElementById(`don-individual-name`);
+        donorName = indEl && indEl.value.trim() ? indEl.value.trim() : (appState.user.name || `Individual Donor`);
+      }
+
+      const recipientName = recipientEl ? recipientEl.value : CARE_HOMES[0].name;
+      const windowVal = windowEl ? windowEl.value : `Tonight 9:00 PM – 9:45 PM`;
+
+      appState.donations.unshift({
+        id: `don-${Date.now()}`,
+        donorType: currentDonorType,
+        donorId,
+        donorName,
+        foodDesc: escapeHtml(descVal),
+        portions: portionsVal,
+        recipientName,
+        window: windowVal,
+        timestamp: `Just scheduled`
+      });
+
+      if (descEl) descEl.value = ``;
+      saveState();
+      renderGiveawayView();
+      refreshIcons();
+
+      if (feedback) {
+        feedback.hidden = false;
+        feedback.className = `feedback-banner is-success`;
+        feedback.textContent = newlyAwarded
+          ? `Pickup scheduled for ${recipientName}! ${donorName} has just been awarded the Hero Donor badge across Feasto.`
+          : `Pickup of ${portionsVal} portions from ${donorName} scheduled for ${recipientName}. Thank you!`;
+      }
+      showToast(newlyAwarded ? `${donorName} earned the Hero Donor badge!` : `Food giveaway scheduled!`);
+    }
+
+    /* ============================================================
+       UTILITIES & APP INITIALIZATION
+       ============================================================ */
+    function escapeHtml(str) {
+      return String(str || ``)
+        .replace(/&/g, `&amp;`)
+        .replace(/</g, `&lt;`)
+        .replace(/>/g, `&gt;`)
+        .replace(/"/g, `&quot;`)
+        .replace(/'/g, `&#39;`);
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/`/g, `&#96;`);
+    }
+
+    document.addEventListener(`keydown`, function(e) {
+      if (e.key === `Escape`) {
+        closeReservationModal();
+      }
+    });
+
+    async function initFeastoApp() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            appState = {
+              ...appState,
+              ...saved,
+              user: { ...appState.user, ...(saved.user || {}) }
+            };
+          }
+        } catch (e) {
+          /* Start with clean default state */
+        }
+      }
+
+      populateRestaurantSelectors();
+      navigateTo(appState.currentView || `registration`);
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    if (document.readyState === `loading`) {
+      document.addEventListener(`DOMContentLoaded`, initFeastoApp);
+    } else {
+      initFeastoApp();
+    }
+  </script>
+</body>
+</html>
